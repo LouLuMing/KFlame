@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- project name -->
+<project name="myAnt" default="proguard" basedir=".">
+  <!-- 定义Java开发环境 -->
+  <property name="jdk-home" value="D:/Java/jdk"/>
+  <property name="jre-home" value="D:/Java/jdk/jre/lib"/>
+  <property name="jdk-version" value="1.8"/>
+  
+  <!-- 定义Proguard Home开发环境 -->
+  <property name="proguard-home" value="D:/Proguard/lib/"/>
+  
+  <!-- 定义Lib路径 -->
+  <property name="Supportlib" value="${jre-home}/rt.jar;${jre-home}/jce.jar;${basedir}/libs/commons-logging.jar;${basedir}/libs/taobao-sdk-java.jar;${basedir}/libs/jedis-2.1.0.jar;${basedir}/libs/wcs-java-sdk-2.0.0-b21299-jar-with-dependencies.jar"/>
+	
+  <!-- 定义自己的输出目录 -->
+  <property name="out-dir" value="Z:"/>
+  <property name="out-dir-classes" value="${out-dir}/classes"/>
+  
+  <!-- 读取目录 -->
+  <property name="src-dir" value="${basedir}/src"/>
+  <!-- 最终生成各种包文件 -->
+  <property name="intermediateJar" value="${out-dir}/intermediate.jar"/>
+  <!-- 
+  <property name="finalJar" value="${out-dir}/${ant.project.name}.jar"/>
+   -->
+  <property name="finalJar" value="${out-dir}/${ant.project.name}.jar"/>
+  <target name="init">
+    <echo>Creating all output directories </echo>
+    <delete file="${intermediateJar}"/>
+    <delete file="${finalJar}"/>
+    <delete dir="${out-dir-classes}"/>
+    <mkdir dir="${out-dir}"/>
+    <mkdir dir="${out-dir-classes}"/>
+  </target>
+  
+  <!-- 步骤 2. 编译所有class文件. -->
+  <target name="compile"  depends="init">
+   	<!--
+      <javac encoding="UTF-8" source="${jdk-version}" target="${jdk-version}" debug="true" extdirs="" srcdir="${basedir}" destdir="${out-dir-classes}" classpath="${Supportlib}">
+    -->
+    <javac encoding="UTF-8" source="${jdk-version}" debug="false" extdirs="" srcdir="${basedir}" destdir="${out-dir-classes}" classpath="${Supportlib}">
+        <compilerarg value="-Xlint:unchecked"/> 
+        <compilerarg value="-Xlint:deprecation"/>
+    </javac>
+    
+  </target>
+	<!-- 
+  <target name="proguard" depends="compile">
+    <jar basedir="${out-dir-classes}" destfile="${finalJar}"/>
+  </target>
+	-->
+	
+  <!-- 混淆代码-->
+  <target name="proguard" depends="compile">
+    <jar basedir="${out-dir-classes}" destfile="${intermediateJar}"/>
+    <java jar="${proguard-home}/proguard.jar" fork="true" failonerror="true">
+      <jvmarg value="-Dmaximum.inlined.code.length=32"/>
+      <arg value="-injars ${intermediateJar}"/>
+      <arg value="-outjars ${finalJar}"/>
+      <arg value="-libraryjars ${Supportlib}"/>
+      <arg value="@proguard.cfg"/>
+    </java>
+  </target>
+  
+</project>

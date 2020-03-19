@@ -1,0 +1,8 @@
+<target name="HttpFileServerTarget" class="${package}.httpFileServer.HttpFileServerTarget">
+	<localport>10000</localport>
+	<folder>files</folder>
+	<resources>
+	    <resource>image</resource>
+	    <resource>.</resource>
+	</resources>
+</target>

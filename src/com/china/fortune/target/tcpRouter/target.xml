@@ -1,0 +1,5 @@
+<target name="TcpRouter" class="${package}.tcpRouter.TcpRouter">
+	<inPort>3307</inPort>
+	<outServer>127.0.0.1</outServer>
+	<outPort>3306</outPort>
+</target>

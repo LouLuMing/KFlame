@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- project name -->
+<project name="myFortune" start="GameTarget" basedir="." logtype="console" port="8000">
+	<property name="package" value="com.china.fortune.target" />
+	<target name="HeartBeatWebTarget" class="${package}.imServerNew.heartBeatWeb.HeartBeatWebTarget">
+		<localport>9610</localport>
+		<logtype>file</logtype>
+		<sBaseBusinessURL>http://test.yiqi1717.com:9000</sBaseBusinessURL>
+	</target>
+</project>

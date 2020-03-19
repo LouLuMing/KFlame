@@ -1,0 +1,5 @@
+
+<target name="WebServerTarget" class="${package}.shell.WebServerTarget">
+	<localport>9600</localport>
+	<ithread>4</ithread>
+</target>

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project name="myFortune" start="WebTarget" basedir="." logtype="file">
+	<target name="WebTarget" class="com.china.fortune.nginx.NginxServerNio">
+		<localport>8989</localport>
+		<resources>
+			<resource url="/h5">/home/project/h5</resource>
+			<resource url="/api">http://127.0.0.1:8700;http://127.0.0.1:8900</resource>
+			<resource url="/">/home/project/web</resource>
+		</resources>
+	</target>
+</project>
