@@ -4,14 +4,12 @@ import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONArray;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.nginx.ActionManager;
-import com.china.fortune.nginx.action.NginxInterface;
-import com.china.fortune.nginx.action.ProxyAction;
+import com.china.fortune.nginx.ProxyManager;
 import com.china.fortune.restfulHttpServer.ResultJson;
 
 public class ShowPathServlet extends RestfulStringServlet {
-    private ActionManager actionManager;
-    public ShowPathServlet(ActionManager am) {
+    private ProxyManager actionManager;
+    public ShowPathServlet(ProxyManager am) {
         actionManager = am;
     }
     @Override

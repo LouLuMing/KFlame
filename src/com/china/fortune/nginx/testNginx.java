@@ -28,7 +28,7 @@ public class testNginx {
                 String sRecv = HttpSendAndRecv.doGet(sUrl);
                 return sRecv != null;
             }};
-        hta.start(20);
+        hta.start(10);
         for (int i = 0; i < 10; i++) {
             ThreadUtils.sleep(1000);
             Log.log(sUrl + " " + hta.showStatus());

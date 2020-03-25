@@ -3,23 +3,23 @@ package com.china.fortune.nginx.servlet;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONObject;
+import com.china.fortune.nginx.ProxyManager;
+import com.china.fortune.nginx.proxy.ProxyList;
 import com.china.fortune.restfulHttpServer.ResultJson;
-import com.china.fortune.nginx.ActionManager;
-import com.china.fortune.nginx.action.NginxInterface;
-import com.china.fortune.nginx.action.ProxyAction;
 
 public class AddPathServlet extends RestfulStringServlet {
-    private ActionManager actionManager;
+    private ProxyManager actionManager;
     private String[] lsKey = { "resource", "path" };
-    public AddPathServlet(ActionManager am) {
+    public AddPathServlet(ProxyManager am) {
         actionManager = am;
         ksKey.append(lsKey);
+        setUrlDecode(true);
     }
     @Override
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
-        NginxInterface nif = actionManager.get(lsValues[0]);
-        if (nif != null && nif instanceof ProxyAction) {
-            ((ProxyAction)nif).addPathForLive(lsValues[1]);
+        ProxyList nif = actionManager.get(lsValues[0]);
+        if (nif != null) {
+            nif.add(lsValues[1]);
             ResultJson.fillOK(json);
         } else {
             ResultJson.fillError(json, "miss " + lsValues[0]);

@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project name="myFortune" start="WebTarget" basedir="." logtype="file">
-	<target name="WebTarget" class="com.china.fortune.nginx.NginxServerNio">
+	<target name="WebTarget" class="com.china.fortune.nginx.NginxServer">
 		<localport>8989</localport>
 		<resources>
-			<resource url="/h5">/home/project/h5</resource>
-			<resource url="/api">http://127.0.0.1:8700;http://127.0.0.1:8900</resource>
-			<resource url="/">/home/project/web</resource>
+			<resource url="/visitor-wechat">/home/yiqi/zjrc/visitor-api</resource>
+			<resource url="/account">http://127.0.0.1:8700;http://127.0.0.1:8900</resource>
+			<resource url="/">/home/yiqi/zjrc/visitor-wechat/dist</resource>
 		</resources>
 	</target>
 </project>
