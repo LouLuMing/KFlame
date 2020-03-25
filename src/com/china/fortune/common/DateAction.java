@@ -1,11 +1,13 @@
 package com.china.fortune.common;
 
+import com.china.fortune.global.Log;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-
-import com.china.fortune.global.Log;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class DateAction {
 	static final public String sDefDateFormat = "yyyy-MM-dd";
@@ -14,6 +16,22 @@ public class DateAction {
 	static public String getTime() {
 		SimpleDateFormat df = new SimpleDateFormat(sDefTimeFormat);
 		return df.format(new Date());
+	}
+
+	static public String getGMT() {
+		Date dt = new Date(System.currentTimeMillis());
+		return getGMT(dt);
+	}
+
+	static public String getGMT(long lTicket) {
+		Date dt = new Date(lTicket);
+		return getGMT(dt);
+	}
+
+	static public String getGMT(Date dt) {
+		SimpleDateFormat sdf = new SimpleDateFormat("EEE d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // 设置时区为GMT
+		return sdf.format(dt);
 	}
 
 	static public String getDate() {

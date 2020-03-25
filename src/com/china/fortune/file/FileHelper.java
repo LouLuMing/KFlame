@@ -1,15 +1,10 @@
 package com.china.fortune.file;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.os.file.PathUtils;
+
+import java.io.*;
 
 public class FileHelper {
 	static public boolean isExists(String sDir) {
@@ -87,24 +82,30 @@ public class FileHelper {
 		return strData;
 	}
 
+	static public byte[] readSmallFile(File file) {
+		byte[] pRead = null;
+		try {
+			InputStream is = new FileInputStream(file);
+			if (is != null) {
+				int iData = (int) file.length();
+				byte[] pData = new byte[iData];
+				if (is.read(pData, 0, iData) == iData) {
+					pRead = pData;
+				}
+				is.close();
+			}
+		} catch (Exception e) {
+			Log.logClass(e.getMessage() + ":" + file.getAbsolutePath());
+		}
+		return pRead;
+	}
+
 	static public byte[] readSmallFile(String fullfilename) {
 		byte[] pRead = null;
 		if (fullfilename != null) {
-			try {
-				File file = new File(fullfilename);
-				if (file.exists() && file.isFile()) {
-					InputStream is = new FileInputStream(file);
-					if (is != null) {
-						int iData = (int) file.length();
-						byte[] pData = new byte[iData];
-						if (is.read(pData, 0, iData) == iData) {
-							pRead = pData;
-						}
-						is.close();
-					}
-				}
-			} catch (Exception e) {
-				Log.logClass(e.getMessage() + ":" + fullfilename);
+			File file = new File(fullfilename);
+			if (file.exists() && file.isFile()) {
+				pRead = readSmallFile(file);
 			}
 		}
 		return pRead;

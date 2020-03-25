@@ -2,8 +2,8 @@ package com.china.fortune.http.httpHead;
 
 import com.china.fortune.compress.GZipCompressor;
 import com.china.fortune.global.ConstData;
-import com.china.fortune.struct.FastList;
 import com.china.fortune.string.StringAction;
+import com.china.fortune.struct.FastList;
 import com.china.fortune.xml.ByteParser;
 
 import java.io.UnsupportedEncodingException;
@@ -26,6 +26,7 @@ public class HttpHeader {
 	static final public String csSetCookie = "Set-Cookie";
 	static final public String csCookie = "Cookie";
 	static final public String csXForwardedFor = "X-Forwarded-For";
+	static final public String csLastModified = "Last-Modified";
 
     static final public String csConnection = "Connection";
     static final public String csUpgrade = "Upgrade";

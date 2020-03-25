@@ -1,9 +1,12 @@
 package com.china.fortune.http.httpHead;
 
+import com.china.fortune.common.DateAction;
 import com.china.fortune.file.FileHelper;
 import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.string.StringAction;
 import com.china.fortune.struct.FastList;
+
+import java.io.File;
 
 public class HttpResponse extends HttpHeader {
 	static final public int ciCode = 200;
@@ -138,9 +141,16 @@ public class HttpResponse extends HttpHeader {
 
 	public boolean putFile(String sFileName, String sType) {
 		if (sFileName != null) {
-			byte[] bData = FileHelper.readSmallFile(sFileName);
-			if (bData != null) {
-				return putFile(FileHelper.getFileNameFromFullPath(sFileName), FileHelper.readSmallFile(sFileName), sType);
+			File file = new File(sFileName);
+			if (file.exists() && file.isFile()) {
+				byte[] bData = FileHelper.readSmallFile(file);
+				if (bData != null) {
+					String sModify = DateAction.getGMT(file.lastModified());
+					if (sModify != null) {
+						addHeader(HttpHeader.csLastModified, sModify);
+					}
+					return putFile(FileHelper.getFileNameFromFullPath(sFileName), FileHelper.readSmallFile(sFileName), sType);
+				}
 			}
 		}
 		setResponse(404);
@@ -149,9 +159,17 @@ public class HttpResponse extends HttpHeader {
 
 	public boolean putFile(String sFileName) {
 		if (sFileName != null) {
-			byte[] bData = FileHelper.readSmallFile(sFileName);
-			if (bData != null) {
-				return putFile(FileHelper.getFileNameFromFullPath(sFileName), bData);
+			File file = new File(sFileName);
+			if (file.exists() && file.isFile()) {
+				byte[] bData = FileHelper.readSmallFile(file);
+				if (bData != null) {
+					String sModify = DateAction.getGMT(file.lastModified());
+					if (sModify != null) {
+						addHeader(HttpHeader.csLastModified, sModify);
+					}
+					String sShortFileName = FileHelper.getFileNameFromFullPath(sFileName);
+					return putFile(sShortFileName, bData);
+				}
 			}
 		}
 		setResponse(404);

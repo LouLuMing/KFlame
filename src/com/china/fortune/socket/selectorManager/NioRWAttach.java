@@ -239,15 +239,6 @@ public abstract class NioRWAttach {
 		}
 	}
 
-	protected void cancelSocket(SelectionKey key) {
-		try {
-			key.cancel();
-			key.attach(null);
-		} catch (Exception e) {
-			Log.logClass(e.getMessage());
-		}
-	}
-
 	protected void freeKeyAndSocket(SelectionKey key) {
 		try {
 			SocketChannel sc = (SocketChannel) key.channel();
