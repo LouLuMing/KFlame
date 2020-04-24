@@ -471,13 +471,15 @@ public class StringAction {
     static public int hexToInt(String sLine) {
         int i = 0;
         if (sLine != null) {
-            char[] lsObj = sLine.toCharArray();
-            for (char obj : lsObj) {
+            for (int j = 0; j < sLine.length(); j++) {
+                char obj = sLine.charAt(j);
                 i *= 16;
                 if (obj >= 'a' && obj <= 'f') {
                     i += (obj - 'a' + 10);
                 } else if (obj >= '0' && obj <= '9') {
                     i += (obj - '0');
+                } else if (obj >= 'A' && obj <= 'F') {
+                    i += (obj - 'a' + 10);
                 }
             }
         }
@@ -962,7 +964,7 @@ public class StringAction {
         Log.log("" + FenToYuan(1001));
         Log.log("" + FenToYuan(1011));
         Log.log("" + FenToYuan(11));
-        Log.log("" + FenToYuan(2));
+        Log.log("" + hexToInt("1a72"));
     }
 
 }

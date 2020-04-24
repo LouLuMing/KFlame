@@ -23,7 +23,7 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
         while (!qAddRead.isEmpty()) {
             PairSocket ps = qAddRead.poll();
             if (ps != null) {
-                SelectionKey sk = addRead(ps.to);
+                SelectionKey sk = registerRead(ps.to);
                 sk.attach(ps.from);
             }
         }
@@ -95,7 +95,8 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
 //    }
 
     @Override
-    protected void onClose(SocketChannel sc, Object objForClient) {
+    protected void onClose(SelectionKey key, Object objForClient) {
+        SocketChannel sc = (SocketChannel)key.channel();
         if (sc != null) {
             SocketChannel to = (SocketChannel) objForClient;
             if (to != null) {
@@ -115,7 +116,7 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
 
     @Override
     protected Object onAccept(SocketChannel sc, Object objForThread) {
-        SocketChannel to = SocketChannelHelper.connect(outServer, outPort);
+        SocketChannel to = SocketChannelHelper.connectNoBlock(outServer, outPort);
         if (to != null) {
             addPairSocketToRead(sc, to);
             mSelector.wakeup();

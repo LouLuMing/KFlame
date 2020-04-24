@@ -10,8 +10,26 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class SocketChannelHelper {
-    static final private int iConnectTimeout = 5000;
+    static final private int iConnectTimeout = 2500;
     static final private int iSoTimeout = 5000;
+
+    static public SocketChannel connectNoBlock(String ip, int port) {
+        SocketChannel sc = null;
+        try {
+            sc = SocketChannel.open();
+            if (sc != null && sc.socket() != null) {
+                InetSocketAddress isa = new InetSocketAddress(ip, port);
+                sc.socket().connect(isa, iConnectTimeout);
+                sc.socket().setSoTimeout(iSoTimeout);
+                sc.configureBlocking(false);
+                sc.socket().setSoLinger(true, 0);
+            }
+        } catch (Exception e) {
+            Log.logClass(e.getMessage());
+            sc = null;
+        }
+        return sc;
+    }
 
     static public SocketChannel connect(String ip, int port) {
         SocketChannel sc = null;

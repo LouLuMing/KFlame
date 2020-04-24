@@ -7,6 +7,7 @@ import com.china.fortune.secure.Digest;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioLoginAttach;
 
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -52,7 +53,7 @@ public abstract class WsServerNio extends NioLoginAttach {
     }
 
     @Override
-    protected void onClose(SocketChannel sc, Object objForClient) {
+    protected void onClose(SelectionKey key, Object objForClient) {
         if (objForClient != null) {
             WsServerRequest hReq = (WsServerRequest) objForClient;
             hReq.scChannel = null;

@@ -24,7 +24,7 @@ public class HttpServerRequest extends HttpRequest {
     public ByteBuffer bbData = ByteBuffer.allocate(iDefDataLength);
     public int iHeadLength = 0;
     public int iDataLength = 0;
-    // public int iRemoteIP = 0;
+    public boolean notChuncked = true;
     public byte[] bRemoteAddr = null;
     public long lActiveTicket = System.currentTimeMillis();
 
@@ -51,6 +51,13 @@ public class HttpServerRequest extends HttpRequest {
         }
     }
 
+    public void reset() {
+        super.clear();
+        bbData.clear();
+        iHeadLength = 0;
+        iDataLength = 0;
+        notChuncked = true;
+    }
 
     public void clear() {
         super.clear();
@@ -62,6 +69,7 @@ public class HttpServerRequest extends HttpRequest {
         lActiveTicket = System.currentTimeMillis();
         iHeadLength = 0;
         iDataLength = 0;
+        notChuncked = true;
     }
 
     public String getBody(int iMax) {
@@ -189,6 +197,48 @@ public class HttpServerRequest extends HttpRequest {
         }
     }
 
+    private int findChunkLen() {
+        int iChuckHead = iHeadLength + iDataLength;
+        int i = ByteParser.indexOf(bbData.array(), iChuckHead, HttpHeader.fbCRLF);
+        if (i > 0) {
+            int iChunkLen = hexToInt(bbData.array(), iChuckHead, bbData.position());
+            if (iChunkLen > 0) {
+                iDataLength += iChunkLen + (i - iChuckHead + 2);
+            } else {
+                iDataLength += 5;
+//                iDataLength = bbData.position() - iHeadLength;
+            }
+            return iChunkLen;
+        }
+        return -1;
+    }
+
+    private boolean largeBuffer() {
+        int left = bbData.remaining();
+        int iTotalLength = iHeadLength + iDataLength + 16;
+        if (iTotalLength > bbData.capacity()) {
+            ByteBuffer bb = ByteBuffer.allocate(iTotalLength);
+            bb.put(bbData.array(), 0, bbData.position());
+            bbData = bb;
+            return left == 0;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean largeBufferAndRead(SocketChannel sc, int iMaxHttpBodyLength) {
+        boolean rs = true;
+        if (iDataLength <= iMaxHttpBodyLength) {
+            if (largeBuffer()) {
+                rs = SocketChannelHelper.read(sc, bbData) >= 0;
+            }
+        } else {
+            Log.logError("Http Body Length Too Large " + iDataLength + ":" + iMaxHttpBodyLength);
+            rs = false;
+        }
+        return rs;
+    }
+
     public NioSocketActionType readHttpHead(SocketChannel sc, int iMaxHttpHeadLength, int iMaxHttpBodyLength) {
         int iLastPostion = bbData.position();
         boolean rs = (SocketChannelHelper.read(sc, bbData) > 0);
@@ -203,17 +253,12 @@ public class HttpServerRequest extends HttpRequest {
                     iHeadLength = i + HttpHeader.fbCRLFCRLF.length;
                     iDataLength = getContentLength(bbData.array(), 0, i);
                     if (iDataLength > 0) {
-                        if (iDataLength <= iMaxHttpBodyLength) {
-                            int iTotalLength = iHeadLength + iDataLength;
-                            if (iTotalLength > bbData.capacity()) {
-                                ByteBuffer bb = ByteBuffer.allocate(iTotalLength);
-                                bb.put(bbData.array(), 0, bbData.position());
-                                bbData = bb;
-                                rs = SocketChannelHelper.read(sc, bbData) >= 0;
-                            }
-                        } else {
-                            Log.logError("Http Body Length Too Large " + iDataLength + ":" + iMaxHttpBodyLength);
-                            rs = false;
+                        rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
+                    } else {
+                        if (isChunked(bbData.array(), 0, iHeadLength)) {
+                            notChuncked = false;
+                            findChunkLen();
+                            rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
                         }
                     }
                 } else if (bbData.position() > iMaxHttpHeadLength) {
@@ -223,8 +268,18 @@ public class HttpServerRequest extends HttpRequest {
             }
             if (rs && iHeadLength > 0) {
                 if ((iHeadLength + iDataLength) <= bbData.position()) {
-                    lActiveTicket = Long.MAX_VALUE;
-                    return NioSocketActionType.OP_READ_COMPLETED;
+                    if (notChuncked) {
+                        lActiveTicket = Long.MAX_VALUE;
+                        return NioSocketActionType.OP_READ_COMPLETED;
+                    } else {
+                        int iChunkLen = findChunkLen();
+                        if (iChunkLen == 0) {
+                            lActiveTicket = Long.MAX_VALUE;
+                            return NioSocketActionType.OP_READ_COMPLETED;
+                        } else if (iChunkLen > 0) {
+                            rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
+                        }
+                    }
 //                } else if (bbData.remaining() == 0) {
 //                    Log.logError("Http Head Body Too Large " + bbData.position() + ":" + iMaxHttpHeadLength);
 //                    lActiveTicket = Long.MAX_VALUE;
@@ -284,7 +339,12 @@ public class HttpServerRequest extends HttpRequest {
         if (bResBody != null) {
             bbData.put(bResBody);
         }
-        bbData.limit(bbData.position());
-        bbData.position(0);
+//        bbData.limit(bbData.position());
+//        bbData.position(0);
+        bbData.flip();
+    }
+
+    public void readyToWrite() {
+        bbData.flip();
     }
 }

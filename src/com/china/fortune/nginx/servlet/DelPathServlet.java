@@ -19,7 +19,13 @@ public class DelPathServlet extends RestfulStringServlet {
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
         ProxyList nif = actionManager.get(lsValues[0]);
         if (nif != null) {
-            nif.del(lsValues[1]);
+            String sPath = lsValues[1];
+            if (sPath.contains("://localhost")) {
+                sPath = sPath.replace("://localhost", "://" + hReq.getRmoteStringIP());
+            }
+            if (nif.get(sPath) != null) {
+                actionManager.cloneAndDel(lsValues[0], sPath);
+            }
             ResultJson.fillOK(json);
         } else {
             ResultJson.fillError(json, "miss " + lsValues[0]);

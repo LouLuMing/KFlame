@@ -82,7 +82,7 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
             SocketChannel sc = (SocketChannel) key.channel();
             if (SocketChannelHelper.write(sc, hs.bbData) > 0) {
                 if (hs.bbData.remaining() == 0) {
-                    hs.clear();
+                    hs.reset();
                     return NioSocketActionType.OP_READ;
                 } else {
                     return NioSocketActionType.OP_WRITE;
@@ -93,7 +93,7 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
     }
 
     @Override
-    protected void onClose(SocketChannel sc, Object objForClient) {
+    protected void onClose(SelectionKey key, Object objForClient) {
     }
 
     @Override

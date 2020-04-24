@@ -78,7 +78,8 @@ public class SaveAndLoadSrc {
 		String sDesFile = sZipFilePath + sFile;
 		FileHelper.delete(sDesFile);
 		ZipCompressor zip = new ZipCompressor(sDesFile);
-		ArrayList<String> lsFiles = PathUtils.getAllFile(sSrcFilePath);
+		ArrayList<String> lsFiles = new ArrayList<String>();
+		PathUtils.getAllFile(sSrcFilePath, lsFiles);
 		zip.compress(lsFiles);
 		Log.log(sDesFile);
 	}

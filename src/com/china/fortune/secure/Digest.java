@@ -85,9 +85,7 @@ public class Digest {
 			mac.init(signingKey);
 			return ByteAction.toHexStringLower(mac.doFinal(bData));
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
 		} catch (InvalidKeyException e) {
-			e.printStackTrace();
 		}
 		return null;
 	}

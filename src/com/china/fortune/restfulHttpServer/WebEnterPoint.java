@@ -7,6 +7,7 @@ import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.WebServer;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
+import com.china.fortune.myant.TargetInterface;
 import com.china.fortune.processflow.ProcessAction;
 import com.china.fortune.reflex.ClassRraverse;
 import com.china.fortune.reflex.ClassUtils;
@@ -27,7 +28,7 @@ import com.china.fortune.xml.XmlNode;
 
 import java.util.List;
 
-public class WebEnterPoint extends WebServer implements DataSaveInterface {
+public class WebEnterPoint extends WebServer implements DataSaveInterface, TargetInterface {
     protected MySqlManager mySqlManager = new MySqlManager();
     protected BeansFamily beansFamily = new BeansFamily();
     private ScheduleManager scheduleManager = new ScheduleManager() {
@@ -191,6 +192,7 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface {
         addServlet(null, new IPAllowAction());
         addServlet(null, new IPFrequentAction());
 
+        addServlet(new ShowHttpAction());
         addServlet(new AddAllowIPAction());
         addIPAllowServelt(new ShowStatisticsAction(this));
         addIPAllowServelt(new ResetStatisticsAction(this));

@@ -43,7 +43,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
         while (!qAddRead.isEmpty()) {
             SocketChannelAndByteBuffer scp = qAddRead.poll();
             if (scp != null) {
-                SelectionKey sk = addRead(scp.sc);
+                SelectionKey sk = registerRead(scp.sc);
                 if (sk != null) {
                     sk.attach(scp.index);
                 }
@@ -52,7 +52,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
     }
 
     private SocketChannelAndByteBuffer connectServer(int port) {
-        SocketChannel sc = SocketChannelHelper.connect(outServer, outPort);
+        SocketChannel sc = SocketChannelHelper.connectNoBlock(outServer, outPort);
         Log.logClass("2. Connect Port " + port);
         if (sc != null) {
             SocketChannelAndByteBuffer sb = new SocketChannelAndByteBuffer(sc, 1024 * 1024);
@@ -109,7 +109,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected void onClose(SocketChannel sc, Object objForClient) {
+    protected void onClose(SelectionKey key, Object objForClient) {
         int port = (Integer) objForClient;
         channelObj.sendCloseEvent(port);
         lsSC.free(port);

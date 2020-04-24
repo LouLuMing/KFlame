@@ -54,15 +54,21 @@ public abstract class HttpThreadAction {
 	public String showStatus() {
 		int iCount = iRecv.get();
 		int iPerCost = 0;
+		int iPerCount = 0;
 		int iSecond = taTotal.getMilliseconds() / 1000;
 		if (iCount > 0) {
 			iPerCost = iCost.get() / iCount;
+		}
+		if (iSecond > 0) {
+			iPerCount = iCount / iSecond;
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("Second:");
 		sb.append(iSecond);
 		sb.append(" Count:");
 		sb.append(iCount);
+		sb.append(" PerCount:");
+		sb.append(iPerCount);
 		sb.append(" PerCost:");
 		sb.append(iPerCost);
 		sb.append(" Lost:");

@@ -163,4 +163,38 @@ public class CountMap {
 		}
 		Log.log("Count:" + iSize + " Total:" + iTotal + " Found:" + iFound);
 	}
+
+	public List<Entry<String, IntObject>> sortHashMapByKey(final boolean bAsc) {
+		List<Entry<String, IntObject>> lsNodes = new ArrayList<Entry<String, IntObject>>(mapCount.entrySet());
+		if (lsNodes.size() > 0) {
+			Collections.sort(lsNodes, new Comparator<Entry<String, IntObject>>() {
+				public int compare(Entry<String, IntObject> o1, Entry<String, IntObject> o2) {
+					if (bAsc) {
+						return StringAction.compareTo(o1.getKey(), o2.getKey());
+					} else {
+						return StringAction.compareTo(o2.getKey(), o1.getKey());
+					}
+				}
+			});
+		}
+		return lsNodes;
+	}
+
+	public void showSortKeyLogHead(boolean bAsc, int iLimit) {
+		int iSize = mapCount.size();
+		if (iSize > 0) {
+			List<Entry<String, IntObject>> lsNodes = sortHashMapByKey(bAsc);
+			int iLoop;
+			if (iLimit > 0) {
+				iLoop = Math.min(iLimit, lsNodes.size());
+			} else {
+				iLoop = lsNodes.size();
+			}
+			for (int i = 0; i < iLoop; i++) {
+				Entry<String, IntObject> e = lsNodes.get(i);
+				showItem(e);
+			}
+		}
+		Log.log("Count:" + iSize + " Total:" + iTotal);
+	}
 }

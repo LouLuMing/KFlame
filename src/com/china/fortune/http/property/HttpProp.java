@@ -7,7 +7,7 @@ public final class HttpProp {
 	static final public int iMaxChunkedLenLimited = 1024 * 1024;
 	static final public int iMaxChunkedCount = 128;
 
-    final static public String csDefaultContentType = "text/plain";
+    final static public String csDefaultContentType = "application/octet-stream";
 
     static HashMap<String, String> mapContentType = new HashMap<String, String>(
             128);

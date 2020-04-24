@@ -42,7 +42,7 @@ public abstract class HttpServerNioAttach extends NioRWAttach {
                         hRequest.toByteBuffer(hResponse);
                         if (SocketChannelHelper.write(sc, hRequest.bbData) >= 0) {
                             if (hRequest.bbData.remaining() == 0) {
-                                hRequest.clear();
+                                hRequest.reset();
                                 return NioSocketActionType.OP_READ;
                             } else {
                                 return NioSocketActionType.OP_WRITE;
@@ -65,6 +65,7 @@ public abstract class HttpServerNioAttach extends NioRWAttach {
             SocketChannel sc = (SocketChannel) key.channel();
             if (SocketChannelHelper.write(sc, hs.bbData) > 0) {
                 if (hs.bbData.remaining() == 0) {
+                    hs.bbData.clear();
                     return NioSocketActionType.OP_READ;
                 } else {
                     return NioSocketActionType.OP_WRITE;
@@ -105,13 +106,13 @@ public abstract class HttpServerNioAttach extends NioRWAttach {
         InetSocketAddress isa = (InetSocketAddress) sc.socket().getRemoteSocketAddress();
         if (isa != null) {
             hhb.bRemoteAddr = isa.getAddress().getAddress();
-            isa.getPort();
+//            isa.getPort();
         }
         return hhb;
     }
 
     @Override
-    protected void onClose(SocketChannel sc, Object objForClient) {
+    protected void onClose(SelectionKey key, Object objForClient) {
         if (objForClient != null) {
             qObjsForClient.add((HttpServerRequest) objForClient);
         }

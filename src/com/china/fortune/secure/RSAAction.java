@@ -203,7 +203,7 @@ public class RSAAction {
 	public static void main(String[] args) {
 		try {
 			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-			keyGen.initialize(1024);
+			keyGen.initialize(2048);
 			KeyPair key = keyGen.generateKeyPair();
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			// 把第二个参数改为 key.getPrivate()

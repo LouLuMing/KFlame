@@ -191,8 +191,7 @@ public class PathUtils {
 		return lsFileName;
 	}
 
-	static public ArrayList<String> getAllFile(String sDir) {
-		ArrayList<String> lsFileName = new ArrayList<String>();
+	static public void getAllFile(String sDir, ArrayList<String> lsFileName) {
 		File dir = new File(sDir);
 		if (dir.isDirectory()) {
 			File[] lsFiles = dir.listFiles();
@@ -200,11 +199,12 @@ public class PathUtils {
 				for (File file : lsFiles) {
 					if (file.isFile()) {
 						lsFileName.add(file.getAbsolutePath());
+					} else {
+						getAllFile(file.getAbsolutePath(), lsFileName);
 					}
 				}
 			}
 		}
-		return lsFileName;
 	}
 
 	static public ArrayList<String> getAllFile(String sDir, String sTag) {
@@ -225,6 +225,19 @@ public class PathUtils {
 		}
 		return lsFileName;
 	}
+
+    static public void syncFiles(String sSrcPath, String sDesPath) {
+        ArrayList<String> lsDesFileName = new ArrayList<String>();
+        PathUtils.getAllFile(sDesPath, lsDesFileName);
+        for (String sDesFile : lsDesFileName) {
+            String sSrcFile = sDesFile.replace(sDesPath, sSrcPath);
+            File fDes = new File(sDesFile);
+            File fSrc = new File(sSrcFile);
+            if (fDes.lastModified() < fSrc.lastModified()) {
+                FileHelper.copy(sSrcFile, sDesFile);
+            }
+        }
+    }
 
 	public static void main(String[] args) {
 		Log.log(System.getProperty("user.dir"));

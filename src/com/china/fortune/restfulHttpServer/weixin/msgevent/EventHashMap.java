@@ -2,6 +2,8 @@ package com.china.fortune.restfulHttpServer.weixin.msgevent;
 
 import java.util.HashMap;
 
+import com.china.fortune.restfulHttpServer.weixin.msgevent.EventInterface;
+
 public class EventHashMap {
 	private HashMap<String, EventInterface> mapEvent = new HashMap<String, EventInterface>();
 	

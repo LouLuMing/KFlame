@@ -1,15 +1,15 @@
 package com.china.fortune.restfulHttpServer.action;
 
-import java.util.HashMap;
-
+import com.china.fortune.common.DateAction;
 import com.china.fortune.file.FileHelper;
 import com.china.fortune.global.Log;
-import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.UrlParam;
+import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.os.file.PathUtils;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
+
+import java.util.HashMap;
 
 public class CacheSmallFileAction implements ServletInterface {
 	private String sRootPath = null;
@@ -46,7 +46,7 @@ public class CacheSmallFileAction implements ServletInterface {
 			}
 		}
 		if (bData != null) {
-			hRes.putFile(UrlParam.getUrlLastPart(sResource), bData);
+			hRes.putFile(UrlParam.getUrlLastPart(sResource), bData, DateAction.getGMT());
 		}
 		return RunStatus.isOK;
 	}

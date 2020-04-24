@@ -2,8 +2,9 @@ package com.china.fortune.http.httpHead;
 
 import com.china.fortune.compress.GZipCompressor;
 import com.china.fortune.global.ConstData;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.global.Log;
 import com.china.fortune.struct.FastList;
+import com.china.fortune.string.StringAction;
 import com.china.fortune.xml.ByteParser;
 
 import java.io.UnsupportedEncodingException;
@@ -27,7 +28,7 @@ public class HttpHeader {
 	static final public String csCookie = "Cookie";
 	static final public String csXForwardedFor = "X-Forwarded-For";
 	static final public String csLastModified = "Last-Modified";
-
+	static final public String csEtag = "Etag";
     static final public String csConnection = "Connection";
     static final public String csUpgrade = "Upgrade";
     static final public String csSecWebSocketAccept = "Sec-WebSocket-Accept";
@@ -296,6 +297,47 @@ public class HttpHeader {
 //		}
 //	}
 
+	public int hexToInt(byte[] bData, int iStart, int iEnd) {
+		int iLen = 0;
+		for (int j = iStart; j <= iEnd; j++) {
+			if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
+				iLen *= 16;
+				iLen += (bData[j] - '0');
+			} else if (bData[j] >= (byte) 'a' && bData[j] <= (byte) 'f') {
+				iLen *= 16;
+				iLen += (bData[j] - 'a' + 10);
+			} else if (bData[j] == 0x0d) {
+				break;
+			}
+		}
+		return iLen;
+	}
+
+	protected int getLength(byte[] bData, int iStart, int iEnd) {
+		int iLen = 0;
+		for (int j = iStart; j <= iEnd; j++) {
+			if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
+				iLen *= 10;
+				iLen += (bData[j] - '0');
+			} else if (bData[j] == 0x0d) {
+				break;
+			}
+		}
+		return iLen;
+	}
+
+	protected boolean isChunked(byte[] bData, int iOff, int iEnd) {
+		for (int i = iOff; i < iEnd - 14; i++) {
+			if ((bData[i + 0] == 'c' || bData[i + 0] == 'C')
+					&& bData[i + 1] == 'h' && bData[i + 2] == 'u'
+					&& bData[i + 3] == 'n' && bData[i + 4] == 'k'
+					&& bData[i + 5] == 'e' && bData[i + 6] == 'd') {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	protected int getContentLength(byte[] bData, int iOff, int iEnd) {
 		int iLen = 0;
 		for (int i = iOff; i < iEnd - 14; i++) {
@@ -303,14 +345,15 @@ public class HttpHeader {
 					&& bData[i + 3] == 't' && bData[i + 4] == 'e' && bData[i + 5] == 'n' && bData[i + 6] == 't'
 					&& bData[i + 7] == '-' && (bData[i + 8] == 'L' || bData[i + 8] == 'l') && bData[i + 9] == 'e'
 					&& bData[i + 10] == 'n' && bData[i + 11] == 'g' && bData[i + 12] == 't' && bData[i + 13] == 'h') {
-				for (int j = i + 14; j <= iEnd; j++) {
-					if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
-						iLen *= 10;
-						iLen += (bData[j] - '0');
-					} else if (bData[j] == 0x0d) {
-						break;
-					}
-				}
+				iLen = getLength(bData, i+14, iEnd);
+//				for (int j = i + 14; j <= iEnd; j++) {
+//					if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
+//						iLen *= 10;
+//						iLen += (bData[j] - '0');
+//					} else if (bData[j] == 0x0d) {
+//						break;
+//					}
+//				}
 				break;
 			}
 		}

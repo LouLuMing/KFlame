@@ -50,8 +50,10 @@ public class HttpResponse extends HttpHeader {
 	}
 
 	public void setResponse(int code) {
-		iCode = code;
-		sReason = HttpProp.getError(code);
+		if (iCode != code) {
+			iCode = code;
+			sReason = HttpProp.getError(code);
+		}
 	}
 	
 	public void setResponse(int code, String reason) {
@@ -163,10 +165,7 @@ public class HttpResponse extends HttpHeader {
 			if (file.exists() && file.isFile()) {
 				byte[] bData = FileHelper.readSmallFile(file);
 				if (bData != null) {
-					String sModify = DateAction.getGMT(file.lastModified());
-					if (sModify != null) {
-						addHeader(HttpHeader.csLastModified, sModify);
-					}
+					addHeader(HttpHeader.csEtag, String.valueOf(file.lastModified()));
 					String sShortFileName = FileHelper.getFileNameFromFullPath(sFileName);
 					return putFile(sShortFileName, bData);
 				}

@@ -1,42 +1,87 @@
 package com.china.fortune.nginx.proxy;
 
-import com.china.fortune.http.httpHead.HttpRequest;
 import com.china.fortune.json.JSONArray;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.struct.FastList;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class ProxyList {
     public String sResource;
     public FastList<Proxy> lsHost = new FastList();
-    private AtomicInteger iIndex = new AtomicInteger(0);
+    private int iIndex = 0;
     public ProxyList(String s) {
         sResource = s;
     }
 
-    public Proxy get() {
-        int iStart = iIndex.getAndIncrement() & 0xffff;
-        for (int i = 0; i < lsHost.size(); i++) {
-            Proxy ph = lsHost.get((iStart + i) % lsHost.size());
-            if (ph.isActive()) {
-                return ph;
+    public int getSize() {
+        return lsHost.size();
+    }
+
+    public int getStart() {
+        return (iIndex++) & 0xff;
+    }
+
+    public Proxy get(int iStart) {
+        if (lsHost.size() > 0) {
+            if (lsHost.size() == 1) {
+                Proxy ph = lsHost.get(0);
+                if (ph.isActive()) {
+                    return ph;
+                }
+            } else {
+                for (int i = 0; i < lsHost.size(); i++) {
+                    Proxy ph = lsHost.get((iStart + i) % lsHost.size());
+                    if (ph.isActive()) {
+                        return ph;
+                    }
+                }
             }
         }
         return null;
     }
 
-    HttpRequest hr = new HttpRequest();
-    public void add(String sPath) {
-        Proxy ph = new Proxy();
-        ph.sPath = sPath;
-        if (sPath.startsWith("http")
-                || sPath.startsWith("ws")) {
-            hr.parseURL(sPath);
-            ph.sServer = hr.getServerIP();
-            ph.iPort = hr.getServerPort();
+    public Proxy get() {
+        if (lsHost.size() > 0) {
+            if (lsHost.size() == 1) {
+                Proxy ph = lsHost.get(0);
+                if (ph.isActive()) {
+                    return ph;
+                }
+            } else {
+                int iStart = (iIndex++) & 0xff;
+                for (int i = 0; i < lsHost.size(); i++) {
+                    Proxy ph = lsHost.get((iStart + i) % lsHost.size());
+                    if (ph.isActive()) {
+                        return ph;
+                    }
+                }
+            }
         }
-        lsHost.add(ph);
+        return null;
+    }
+
+    public Proxy get(String sPath) {
+        Proxy exist = null;
+        for (int i = 0; i < lsHost.size(); i++) {
+            Proxy ph = lsHost.get(i);
+            if (sPath.equals(ph.sPath)) {
+                exist = ph;
+                break;
+            }
+        }
+        return exist;
+    }
+
+    public void add(String sPath) {
+        if (sPath != null) {
+            Proxy exist = get(sPath);
+            if (exist == null) {
+                exist = new Proxy();
+                lsHost.add(exist);
+            }
+            if (exist != null) {
+                exist.update(sPath);
+            }
+        }
     }
 
     public ProxyList clone() {
@@ -52,10 +97,14 @@ public class ProxyList {
             Proxy ph = lsHost.get(i);
             if (path.equals(ph.sPath)) {
                 lsHost.remove(i);
-                iIndex.set(0);
+                iIndex = 0;
                 break;
             }
         }
+    }
+
+    public boolean equals(String resource) {
+        return resource.equals(sResource);
     }
 
     public boolean isMatch(String resource) {

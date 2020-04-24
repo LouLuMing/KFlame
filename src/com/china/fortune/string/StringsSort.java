@@ -12,11 +12,10 @@ public class StringsSort {
 	
 	public static String toASC(HashMap<String, String> map) {
 		StringBuilder sb = new StringBuilder();
-
 		List<String> keys = new ArrayList<String>(map.keySet());
 		Collections.sort(keys, String.CASE_INSENSITIVE_ORDER);
 		for (int i = 0; i < keys.size(); i++) {
-			String key = (String) keys.get(i);
+			String key = keys.get(i);
 			String value = map.get(key);
 			if (StringAction.length(value) > 0) {
 				sb.append(key);
@@ -37,7 +36,7 @@ public class StringsSort {
 		List<String> keys = new ArrayList<String>(jsonObject.keySet());
 		Collections.sort(keys, String.CASE_INSENSITIVE_ORDER);
 		for (int i = 0; i < keys.size(); i++) {
-			String key = (String) keys.get(i);
+			String key = keys.get(i);
 			String value = jsonObject.optString(key);
 			if (StringAction.length(value) > 0) {
 				sb.append(key);

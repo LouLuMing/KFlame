@@ -162,7 +162,7 @@ public class JSONDataCenter {
 				JSONArray jarr = (JSONArray) skJson.peek();
 				jarr.put(sValue);
 			}
-			Log.logClass(skJson.size() + ":" + sValue);
+//			Log.logClass(skJson.size() + ":" + sValue);
 		}
 	}
 

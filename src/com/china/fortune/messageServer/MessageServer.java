@@ -1,5 +1,6 @@
 package com.china.fortune.messageServer;
 
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 import com.china.fortune.socket.SocketChannelHelper;
@@ -57,7 +58,7 @@ public abstract class MessageServer extends NioLoginAttach {
 	}
 
 	@Override
-	protected void onClose(SocketChannel sc, Object objForClient) {
+	protected void onClose(SelectionKey key, Object objForClient) {
 		if (objForClient != null) {
 			MessageClient ct = (MessageClient) objForClient;
 			onClose(ct, ct.attachment());

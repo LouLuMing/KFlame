@@ -37,6 +37,6 @@ public abstract class NioReadNoAttach extends NioRWAttach {
 	}
 	
 	@Override
-	protected void onClose(SocketChannel sc, Object objForClient) {
+	protected void onClose(SelectionKey key, Object objForClient) {
 	}
 }

@@ -22,14 +22,14 @@ import com.china.fortune.thread.AutoIncreaseThreadPool;
 
 public abstract class NioRWAttach {
 	protected final int iSelectSleepTime = 50;
-	protected EnConcurrentLinkedQueue<SelectionKey> qSelectedKey = new EnConcurrentLinkedQueue<SelectionKey>(17);
+	protected EnConcurrentLinkedQueue<SelectionKey> qSelectedKey = new EnConcurrentLinkedQueue<SelectionKey>(18);
 	protected Selector mSelector = null;
 
 	protected abstract NioSocketActionType onRead(SelectionKey key, Object objForThread);
 
 	protected abstract NioSocketActionType onWrite(SelectionKey key, Object objForThread);
 
-	protected abstract void onClose(SocketChannel sc, Object objForClient);
+	protected abstract void onClose(SelectionKey key, Object objForClient);
 
 	protected abstract Object createObjectInThread();
 
@@ -71,7 +71,7 @@ public abstract class NioRWAttach {
 	}
 
 	protected final EmptySocketControllerNoSafe emptySocketController = new EmptySocketControllerNoSafe(6, 7,
-			65536) {
+			65536 * 4) {
 		@Override
 		public void onTimeout(long lLimited, SelectionKey[] lsData, int iSize) {
 			for (int i = 0; i < iSize; i++) {
@@ -168,7 +168,7 @@ public abstract class NioRWAttach {
 					key.interestOps(SelectionKey.OP_WRITE);
 					break;
 				case OP_CLOSE:
-					onClose((SocketChannel) key.channel(), key.attachment());
+					onClose(key, key.attachment());
 					freeKeyAndSocket(key);
 					break;
 				}
@@ -288,6 +288,38 @@ public abstract class NioRWAttach {
 		return selectionKey;
 	}
 
+//	protected void interestRead(SelectionKey key) {
+//		key.interestOps(SelectionKey.OP_READ);
+//	}
+
+	protected SelectionKey interestRead(SocketChannel sc) {
+		SelectionKey key = sc.keyFor(mSelector);
+		if (key != null) {
+			key.interestOps(SelectionKey.OP_READ);
+		}
+		return key;
+	}
+
+	protected SelectionKey registerWrite(SocketChannel sc) {
+		SelectionKey selectionKey = null;
+		try {
+			selectionKey = sc.register(mSelector, SelectionKey.OP_WRITE, null);
+		} catch (Exception e) {
+			Log.logClass(e.getMessage());
+		}
+		return selectionKey;
+	}
+
+	protected SelectionKey registerRead(SocketChannel sc) {
+		SelectionKey selectionKey = null;
+		try {
+			selectionKey = sc.register(mSelector, SelectionKey.OP_READ, null);
+		} catch (Exception e) {
+			Log.logClass(e.getMessage());
+		}
+		return selectionKey;
+	}
+
 	private SelectionKey addAccept(int iPort) {
 		SelectionKey selectionKey = null;
 		if (iPort > 0) {
@@ -296,6 +328,7 @@ public abstract class NioRWAttach {
 				ServerSocket ss = ssc.socket();
 				ss.bind(new InetSocketAddress(iPort));
 				ssc.configureBlocking(false);
+
 				selectionKey = ssc.register(mSelector, SelectionKey.OP_ACCEPT, null);
 			} catch (Exception e) {
 				selectionKey = null;
