@@ -104,17 +104,9 @@ public class HttpResponse extends HttpHeader {
 		return sb.toString();
 	}
 
-	private String getContentType(String sFileName) {
-		String sFileExtension = FileHelper.getFileExtension(sFileName);
-		if (sFileExtension != null) {
-			return HttpProp.getContentType(sFileExtension);
-		}
-		return null;
-	}
-
 	public boolean putFile(String sFileName, byte[] bData) {
 		if (bData != null) {
-			String sContentType = getContentType(sFileName);
+			String sContentType = HttpProp.getContentTypeByFile(sFileName);
 			if (sContentType == null) {
 				sContentType = HttpProp.csDefaultContentType;
 			}

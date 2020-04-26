@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.china.fortune.common.ByteAction;
+import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 
@@ -871,6 +872,26 @@ public class StringAction {
         return sLine;
     }
 
+    public static String newString(ByteBuffer bb, int iOff, int iLen) {
+        byte[] bData = ByteBufferUtils.toByte(bb, iOff, iLen);
+        try {
+            return new String(bData);
+        } catch (Exception e) {
+            Log.logClass(e.getMessage());
+        }
+        return null;
+    }
+
+    public static String newString(ByteBuffer bb, int iOff, int iLen, String sCharaset) {
+        byte[] bData = ByteBufferUtils.toByte(bb, iOff, iLen);
+        try {
+            return new String(bData, sCharaset);
+        } catch (Exception e) {
+            Log.logClass(e.getMessage());
+        }
+        return null;
+    }
+
     public static String newString(byte[] bData, int iOff, int iLen) {
         String sLine = null;
         try {
@@ -965,6 +986,19 @@ public class StringAction {
         Log.log("" + FenToYuan(1011));
         Log.log("" + FenToYuan(11));
         Log.log("" + hexToInt("1a72"));
+
+        String sData = "Get /Hello HTTP 1.1";
+        ByteBuffer bb = ByteBuffer.allocate(1000);
+        try {
+            bb.put(sData.getBytes("utf-8"));
+
+            Log.logClass(newString(bb.array(), 0, bb.position()+1));
+            Log.logClass(newString(bb, 0, bb.position()+1));
+
+            Log.logClass(bb.array()[0] + " " + bb.get(0));
+        } catch (Exception e) {
+
+        }
     }
 
 }

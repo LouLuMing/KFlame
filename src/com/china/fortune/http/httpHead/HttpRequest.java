@@ -1,8 +1,11 @@
 package com.china.fortune.http.httpHead;
 
+import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.string.StringAction;
 import com.china.fortune.xml.ByteParser;
+
+import java.nio.ByteBuffer;
 
 public class HttpRequest extends HttpHeader {
     final private String csRootResource = "/";
@@ -33,14 +36,28 @@ public class HttpRequest extends HttpHeader {
         parseURL(sURL);
     }
 
+    public boolean parseRequest(ByteBuffer bb, int iStart) {
+        int iPos = ByteBufferUtils.indexOf(bb, iStart, bb.position() +1, (byte) ' ');
+        if (iPos > 0) {
+            sMethod = StringAction.newString(bb, iStart, iPos);
+            iStart = iPos + 1;
+            iPos = ByteBufferUtils.indexOf(bb, iStart, bb.position() +1, (byte) ' ');
+            if (iPos > 0) {
+                sResource = StringAction.newString(bb, iStart, iPos);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean parseRequest(byte[] bData, int iStart) {
         int iPos = ByteParser.indexOf(bData, iStart, (byte) ' ');
         if (iPos > 0) {
-            sMethod = StringAction.newString(bData, iStart, iPos - iStart);
+            sMethod = StringAction.newString(bData, iStart, iPos);
             iStart = iPos + 1;
             iPos = ByteParser.indexOf(bData, iStart, (byte) ' ');
             if (iPos > 0) {
-                sResource = StringAction.newString(bData, iStart, iPos - iStart);
+                sResource = StringAction.newString(bData, iStart, iPos);
                 return true;
             }
         }
@@ -143,6 +160,26 @@ public class HttpRequest extends HttpHeader {
 
     public String getMethod() {
         return sMethod;
+    }
+
+    public boolean parseRequestAndHeader(ByteBuffer bb) {
+        boolean rs = false;
+        int iMethod = ByteBufferUtils.indexOf(bb, 0, bb.position()+1, HttpHeader.fbCRLF);
+        if (iMethod > 0) {
+            if (parseRequest(bb, 0)) {
+                while (true) {
+                    int iOff = iMethod + HttpHeader.fbCRLF.length;
+                    iMethod = ByteBufferUtils.indexOf(bb, iOff, bb.position()+1, HttpHeader.fbCRLF);
+                    if (iMethod > iOff) {
+                        parseHeader(bb, iOff, iMethod - 1);
+                    } else {
+                        break;
+                    }
+                }
+                rs = true;
+            }
+        }
+        return rs;
     }
 
     public boolean parseRequestAndHeader(byte[] bData) {

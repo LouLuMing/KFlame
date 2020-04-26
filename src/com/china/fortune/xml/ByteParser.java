@@ -76,10 +76,10 @@ public class ByteParser {
 		return iSigner;
 	}
 
-	static public int findFirstCharNotSpace(byte[] bArray, int iOff, int iLimit) {
+	static public int findFirstCharNotSpace(byte[] bArray, int iOff, int iLen) {
 		int iRs = -1;
 		int iIndex = iOff;
-		while (iIndex < iLimit - 1) {
+		while (iIndex < iLen - 1) {
 			if (bArray[iIndex++] == ' ') {
 				if (bArray[iIndex] != ' ') {
 					iRs = iIndex;
@@ -134,9 +134,9 @@ public class ByteParser {
 		return iIndex;
 	}
 
-	static public int indexOf(byte[] bData, int iOff, int iEnd, byte[] bCompare) {
+	static public int indexOf(byte[] bData, int iOff, int iLen, byte[] bCompare) {
 		int iIndex = -1;
-		for (int i = iOff; i < iEnd - bCompare.length; i++) {
+		for (int i = iOff; i < iLen - bCompare.length; i++) {
 			boolean bFound = true;
 			for (int j = 0; j < bCompare.length; j++) {
 				if (bData[i + j] != bCompare[j]) {
@@ -156,8 +156,8 @@ public class ByteParser {
 		return indexOf(bData, iOff, bData.length, bCompare);
 	}
 
-	static public int indexOf(byte[] bData, int iOff, int iEnd, byte bCompare) {
-		for (int i = iOff; i < iEnd ; i++) {
+	static public int indexOf(byte[] bData, int iOff, int iLen, byte bCompare) {
+		for (int i = iOff; i < iLen ; i++) {
 			if (bData[i] == bCompare) {
 				return i;
 			}
@@ -173,10 +173,10 @@ public class ByteParser {
 		return compareKey(bData, iOff, bData.length, bCompare);
 	}
 
-	static public boolean compareKey(byte[] bData, int iOff, int iLimited,
+	static public boolean compareKey(byte[] bData, int iOff, int iLen,
 			byte[] bCompare) {
 		boolean rs = false;
-		if (iLimited > iOff + bCompare.length) {
+		if (iLen > iOff + bCompare.length) {
 			rs = true;
 			for (int i = 0; i < bCompare.length; i++) {
 				if (bData[iOff + i] != bCompare[i]) {

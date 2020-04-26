@@ -1,19 +1,24 @@
 package com.china.fortune.http.server;
 
 import com.china.fortune.common.ByteAction;
+import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.easy.Int2Struct;
+import com.china.fortune.file.FileHelper;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.httpHead.HttpRequest;
 import com.china.fortune.http.httpHead.HttpResponse;
+import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.socket.IPHelper;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 import com.china.fortune.string.StringAction;
 import com.china.fortune.xml.ByteParser;
 
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
@@ -21,7 +26,7 @@ public class HttpServerRequest extends HttpRequest {
     static final protected int iDefDataLength = 4 * 1024;
     static final protected int iLimitDataLength = 1024 * 1024;
 
-    public ByteBuffer bbData = ByteBuffer.allocate(iDefDataLength);
+    protected ByteBuffer bbData = ByteBuffer.allocateDirect(iDefDataLength);
     public int iHeadLength = 0;
     public int iDataLength = 0;
     public boolean notChuncked = true;
@@ -46,7 +51,7 @@ public class HttpServerRequest extends HttpRequest {
 
     public void logByteBuffer() {
         if (bbData.position() > 0) {
-            Log.log(ByteAction.toHexString(bbData.array(), 0, bbData.position()));
+            Log.log(ByteBufferUtils.toHexString(bbData, 0, bbData.position()));
 //            Log.log(new String(bbData.array(), 0, bbData.position()));
         }
     }
@@ -62,7 +67,7 @@ public class HttpServerRequest extends HttpRequest {
     public void clear() {
         super.clear();
         if (bbData.capacity() > iLimitDataLength) {
-            bbData = ByteBuffer.allocate(iDefDataLength);
+            bbData = ByteBuffer.allocateDirect(iDefDataLength);
         } else {
             bbData.clear();
         }
@@ -82,7 +87,7 @@ public class HttpServerRequest extends HttpRequest {
             if (iMax > iDataLength) {
                 iMax = iDataLength;
             }
-            sBody = StringAction.newString(bbData.array(), iHeadLength, iMax, sCharset);
+            sBody = StringAction.newString(bbData, iHeadLength, iMax, sCharset);
         }
         return sBody;
     }
@@ -95,7 +100,7 @@ public class HttpServerRequest extends HttpRequest {
             if (sCharset == null) {
                 sCharset = ConstData.sHttpCharset;
             }
-            sBody = StringAction.newString(bbData.array(), iHeadLength, iDataLength, sCharset);
+            sBody = StringAction.newString(bbData, iHeadLength, iDataLength, sCharset);
         }
         return sBody;
     }
@@ -109,14 +114,25 @@ public class HttpServerRequest extends HttpRequest {
     public byte[] getByteBody() {
         byte[] bBody = null;
         if (iDataLength > 0) {
-            bBody = new byte[iDataLength];
-            if (iDataLength > 0) {
-                System.arraycopy(bbData.array(), iHeadLength, bBody, 0, iDataLength);
-            }
+            bBody = ByteBufferUtils.toByte(bbData, iHeadLength, iHeadLength + iDataLength);
+//            bBody = new byte[iDataLength];
+//            if (iDataLength > 0) {
+//                System.arraycopy(bbData.array(), iHeadLength, bBody, 0, iDataLength);
+//            }
         }
         return bBody;
     }
 
+    private int findFormData(ByteBuffer bb, int iOff, byte[] bTag) {
+        int i = ByteBufferUtils.indexOf(bb, iOff, bTag);
+        if (i > 0) {
+            i = ByteBufferUtils.indexOf(bb, i, fbCRLFCRLF);
+            if (i > 0) {
+                return i + 4;
+            }
+        }
+        return -1;
+    }
 
     private int findFormData(byte[] bBody, int iOff, byte[] bTag) {
         int i = ByteParser.indexOf(bBody, iOff, bTag);
@@ -131,6 +147,18 @@ public class HttpServerRequest extends HttpRequest {
 
     static final private byte[] sNameDot = "name=\"".getBytes();
     static final private byte bDot = '"';
+
+    private String findFormDataName(ByteBuffer bb, int iStart) {
+        int i = ByteBufferUtils.indexOf(bb, iStart, sNameDot);
+        if (i > 0) {
+            i += sNameDot.length;
+            int j = ByteBufferUtils.indexOf(bb, i, bDot);
+            if (j > i) {
+                return new String(bBody, i, j - i);
+            }
+        }
+        return null;
+    }
 
     private String findFormDataName(byte[] bBody, int iStart) {
         int i = ByteParser.indexOf(bBody, iStart, sNameDot);
@@ -153,14 +181,14 @@ public class HttpServerRequest extends HttpRequest {
                 byte[] bTag = sTag.getBytes();
                 int iOff = iHeadLength;
                 while (true) {
-                    int iStart = findFormData(bbData.array(), iOff, bTag);
+                    int iStart = findFormData(bbData, iOff, bTag);
                     if (iStart > 0) {
-                        String sName = findFormDataName(bbData.array(), iOff);
-                        iOff = ByteParser.indexOf(bbData.array(), iStart, bTag);
+                        String sName = findFormDataName(bbData, iOff);
+                        iOff = ByteBufferUtils.indexOf(bbData, iStart, bTag);
                         if (iOff > 0) {
-                            int iEnd = ByteParser.lastIndexOf(bbData.array(), iOff, fbCRLF);
+                            int iEnd = ByteBufferUtils.lastIndexOf(bbData, iOff, fbCRLF);
                             if (iEnd >= iStart) {
-                                mapIndex.put(sName, new Int2Struct(iStart, iEnd - iStart));
+                                mapIndex.put(sName, new Int2Struct(iStart, iEnd));
                             } else {
                                 break;
                             }
@@ -180,7 +208,7 @@ public class HttpServerRequest extends HttpRequest {
     public String formDataToString(HashMap<String, Int2Struct> formData, String key) {
         Int2Struct i2s = formData.get(key);
         if (i2s != null && i2s.i2 > 0) {
-            return new String(bbData.array(), i2s.i1, i2s.i2);
+            return StringAction.newString(bbData, i2s.i1, i2s.i2);
         } else {
             return null;
         }
@@ -189,8 +217,10 @@ public class HttpServerRequest extends HttpRequest {
     public byte[] formDataToBytes(HashMap<String, Int2Struct> formData, String key) {
         Int2Struct i2s = formData.get(key);
         if (i2s != null && i2s.i2 > 0) {
-            byte[] bBody = new byte[i2s.i2];
-            System.arraycopy(bbData.array(), i2s.i1, bBody, 0, bBody.length);
+//            byte[] bBody = new byte[i2s.i2];
+//            System.arraycopy(bbData.array(), i2s.i1, bBody, 0, bBody.length);
+
+            byte[] bBody = ByteBufferUtils.toByte(bbData, i2s.i1, i2s.i2);
             return bBody;
         } else {
             return null;
@@ -199,9 +229,9 @@ public class HttpServerRequest extends HttpRequest {
 
     private int findChunkLen() {
         int iChuckHead = iHeadLength + iDataLength;
-        int i = ByteParser.indexOf(bbData.array(), iChuckHead, HttpHeader.fbCRLF);
+        int i = ByteBufferUtils.indexOf(bbData, iChuckHead, HttpHeader.fbCRLF);
         if (i > 0) {
-            int iChunkLen = hexToInt(bbData.array(), iChuckHead, bbData.position());
+            int iChunkLen = hexToInt(bbData, iChuckHead, bbData.position());
             if (iChunkLen > 0) {
                 iDataLength += iChunkLen + (i - iChuckHead + 2);
             } else {
@@ -217,8 +247,12 @@ public class HttpServerRequest extends HttpRequest {
         int left = bbData.remaining();
         int iTotalLength = iHeadLength + iDataLength + 16;
         if (iTotalLength > bbData.capacity()) {
-            ByteBuffer bb = ByteBuffer.allocate(iTotalLength);
-            bb.put(bbData.array(), 0, bbData.position());
+            int pos = bbData.position();
+            bbData.position(0);
+            ByteBuffer bb = ByteBuffer.allocateDirect(iTotalLength);
+            bb.put(bbData);
+            bb.position(pos);
+//            bb.put(bbData.array(), 0, bbData.position());
             bbData = bb;
             return left == 0;
         } else {
@@ -248,14 +282,14 @@ public class HttpServerRequest extends HttpRequest {
                 if (iLastPostion < 0) {
                     iLastPostion = 0;
                 }
-                int i = ByteParser.indexOf(bbData.array(), iLastPostion, HttpHeader.fbCRLFCRLF);
+                int i = ByteBufferUtils.indexOf(bbData, iLastPostion, bbData.position() + 1, HttpHeader.fbCRLFCRLF);
                 if (i > 0) {
                     iHeadLength = i + HttpHeader.fbCRLFCRLF.length;
-                    iDataLength = getContentLength(bbData.array(), 0, i);
+                    iDataLength = getContentLength(bbData, 0, i);
                     if (iDataLength > 0) {
                         rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
                     } else {
-                        if (isChunked(bbData.array(), 0, iHeadLength)) {
+                        if (isChunked(bbData, 0, iHeadLength)) {
                             notChuncked = false;
                             findChunkLen();
                             rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
@@ -296,21 +330,21 @@ public class HttpServerRequest extends HttpRequest {
     }
 
     public boolean findHttpHeadLength(int iStart) {
-        int i = ByteParser.indexOf(bbData.array(), iStart, HttpHeader.fbCRLFCRLF);
+        int i = ByteBufferUtils.indexOf(bbData, iStart, bbData.position() + 1, HttpHeader.fbCRLFCRLF);
         if (i > 0) {
             iHeadLength = i + HttpHeader.fbCRLFCRLF.length;
-            iDataLength = getContentLength(bbData.array(), 0, i);
+            iDataLength = getContentLength(bbData, 0, i);
             return true;
         }
         return false;
     }
 
     public boolean parseRequest() {
-        return parseRequest(bbData.array(), 0);
+        return parseRequest(bbData, 0);
     }
 
     public boolean parseRequestAndHeader() {
-        return parseRequestAndHeader(bbData.array());
+        return parseRequestAndHeader(bbData);
     }
 
     public void toByteBuffer(HttpResponse hResponse) {
@@ -330,7 +364,7 @@ public class HttpServerRequest extends HttpRequest {
         }
 
         if (bbData.capacity() < iLen) {
-            bbData = ByteBuffer.allocate(iLen);
+            bbData = ByteBuffer.allocateDirect(iLen);
         }
         bbData.clear();
         if (bHeader != null) {
@@ -339,12 +373,35 @@ public class HttpServerRequest extends HttpRequest {
         if (bResBody != null) {
             bbData.put(bResBody);
         }
-//        bbData.limit(bbData.position());
-//        bbData.position(0);
         bbData.flip();
     }
 
     public void readyToWrite() {
         bbData.flip();
     }
+
+
+    public int read(SocketChannel sc) {
+        return SocketChannelHelper.read(sc, bbData);
+    }
+
+    public NioSocketActionType write(SelectionKey key) {
+        SocketChannel sc = (SocketChannel) key.channel();
+        if (SocketChannelHelper.write(sc, bbData) >= 0) {
+            if (bbData.remaining() == 0) {
+                reset();
+                return NioSocketActionType.OP_READ;
+            } else {
+                return NioSocketActionType.OP_WRITE;
+            }
+        } else {
+            return NioSocketActionType.OP_CLOSE;
+        }
+    }
+
+    public int writeBlock(SocketChannel to) {
+        bbData.flip();
+        return SocketChannelHelper.blockWrite(to, bbData, 3);
+    }
+
 }

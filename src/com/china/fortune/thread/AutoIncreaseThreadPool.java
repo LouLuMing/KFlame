@@ -83,8 +83,8 @@ public abstract class AutoIncreaseThreadPool {
 		t.start();
 	}
 
-	static final protected int iLimitQuitRequest = 20;
-	static final protected int iLimitContinuousWork = 5;
+	static final protected int iLimitQuitRequest = 50;
+	static final protected int iLimitContinuousWork = 3;
 
 	protected void doWorkInThread(Object obj) {
 		boolean isNeedDecrement = true;

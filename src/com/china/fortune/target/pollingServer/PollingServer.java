@@ -127,7 +127,7 @@ public abstract class PollingServer extends HttpServerNioAttach {
                 boolean rs = true;
                 SocketChannel sc = (SocketChannel) key.channel();
                 WsServerRequest hReq = (WsServerRequest) objForClient;
-                if (SocketChannelHelper.read(sc, hReq.bbData) > 0) {
+                if (hReq.read(sc) > 0) {
                     if (hReq.iDataLength == 0) {
                         hReq.parseWsHead();
                         if (hReq.iDataLength > ciMaxDataLength) {

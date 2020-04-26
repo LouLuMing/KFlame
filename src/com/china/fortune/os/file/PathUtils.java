@@ -233,9 +233,11 @@ public class PathUtils {
             String sSrcFile = sDesFile.replace(sDesPath, sSrcPath);
             File fDes = new File(sDesFile);
             File fSrc = new File(sSrcFile);
-            if (fDes.lastModified() < fSrc.lastModified()) {
-                FileHelper.copy(sSrcFile, sDesFile);
-            }
+            if (fDes.exists() && fSrc.exists()) {
+				if (fDes.lastModified() < fSrc.lastModified()) {
+					FileHelper.copy(sSrcFile, sDesFile);
+				}
+			}
         }
     }
 

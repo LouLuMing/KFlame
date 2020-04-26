@@ -1,5 +1,7 @@
 package com.china.fortune.http.property;
 
+import com.china.fortune.file.FileHelper;
+
 import java.util.HashMap;
 
 public final class HttpProp {
@@ -49,5 +51,13 @@ public final class HttpProp {
         } else {
             return "Unknown Error";
         }
+    }
+
+    static public String getContentTypeByFile(String sFileName) {
+        String sFileExtension = FileHelper.getFileExtension(sFileName);
+        if (sFileExtension != null) {
+            return getContentType(sFileExtension);
+        }
+        return null;
     }
 }

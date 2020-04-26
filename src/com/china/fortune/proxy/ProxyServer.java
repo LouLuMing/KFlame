@@ -55,7 +55,6 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                 return op;
             }
         }
-        Log.logClass("NioSocketActionType.OP_CLOSE");
         return NioSocketActionType.OP_CLOSE;
     }
 
@@ -63,16 +62,8 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
     protected NioSocketActionType onWrite(SelectionKey key, Object objForThread) {
         Object objForClient = key.attachment();
         if (objForClient != null) {
-            HttpProxyRequest hs = (HttpProxyRequest) objForClient;
-            SocketChannel sc = (SocketChannel) key.channel();
-            if (SocketChannelHelper.write(sc, hs.bbData) > 0) {
-                if (hs.bbData.remaining() == 0) {
-                    hs.reset();
-                    return NioSocketActionType.OP_READ;
-                } else {
-                    return NioSocketActionType.OP_WRITE;
-                }
-            }
+            HttpProxyRequest hReq = (HttpProxyRequest) objForClient;
+            return hReq.write(key);
         }
         return NioSocketActionType.OP_CLOSE;
     }
@@ -205,13 +196,13 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                         if (hReq.getHeaderValue("If-None-Match") != null) {
                             hRes.setResponse(304);
                             hReq.toByteBuffer(hRes);
-                            return doWrite(key, hReq);
+                            return hReq.write(key);
                         } else {
                             String sFile = proxy.getLocation(sResource);
                             if (hRes.putFile(sFile)) {
                                 Log.log(sResource + " " + sFile);
                                 hReq.toByteBuffer(hRes);
-                                return doWrite(key, hReq);
+                                return hReq.write(key);
                             } else {
                                 Log.logError(sResource + " " + sFile);
                                 break;
@@ -224,22 +215,7 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
         proxyManager.doCommand(sResource, hReq, hRes);
 
         hReq.toByteBuffer(hRes);
-        return doWrite(key, hReq);
-    }
-
-    public NioSocketActionType doWrite(SelectionKey key, HttpProxyRequest hRequest) {
-        SocketChannel sc = (SocketChannel) key.channel();
-        if (SocketChannelHelper.write(sc, hRequest.bbData) >= 0) {
-            if (hRequest.bbData.remaining() == 0) {
-                hRequest.reset();
-                return NioSocketActionType.OP_READ;
-            } else {
-                return NioSocketActionType.OP_WRITE;
-            }
-        } else {
-            Log.logClass("NioSocketActionType.OP_CLOSE");
-            return NioSocketActionType.OP_CLOSE;
-        }
+        return hReq.write(key);
     }
 
     protected void initAndStart(int iLocalPort) {

@@ -1,5 +1,6 @@
 package com.china.fortune.http.httpHead;
 
+import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.compress.GZipCompressor;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
@@ -8,6 +9,7 @@ import com.china.fortune.string.StringAction;
 import com.china.fortune.xml.ByteParser;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 
 public class HttpHeader {
 	final static public byte[] fbCRLFCRLF = new byte[] { 0x0d, 0x0a, 0x0d, 0x0a };
@@ -89,6 +91,33 @@ public class HttpHeader {
             Header hd = lsHeader.get(i);
 			if (hd.sKey != null && hd.sKey.compareToIgnoreCase(sKey) == 0) {
 				lsHeader.remove(hd);
+			}
+		}
+	}
+
+	public void parseHeader(ByteBuffer bData, int iStart, int iEnd) {
+		int iPos = ByteBufferUtils.indexOf(bData, iStart, bData.position()+1, (byte)':');
+		if (iPos > 0) {
+			while (bData.get(iStart) == ' ') {
+				iStart++;
+			}
+			int iIndex = iPos - 1;
+			while (bData.get(iIndex) == ' ') {
+				iIndex--;
+			}
+			if (iIndex > iStart) {
+				String sKey = StringAction.newString(bData, iStart, iIndex - iStart + 1);
+				iIndex = iPos + 1;
+				while (bData.get(iIndex) == ' ') {
+					iIndex++;
+				}
+				while (bData.get(iEnd) == ' ') {
+					iEnd--;
+				}
+				if (iEnd > iIndex) {
+					String sValue = StringAction.newString(bData, iIndex, iEnd - iIndex + 1);
+					addHeader(sKey, sValue);
+				}
 			}
 		}
 	}
@@ -297,16 +326,31 @@ public class HttpHeader {
 //		}
 //	}
 
-	public int hexToInt(byte[] bData, int iStart, int iEnd) {
+	public int hexToInt(ByteBuffer bb, int iStart, int iEnd) {
 		int iLen = 0;
 		for (int j = iStart; j <= iEnd; j++) {
-			if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
+			byte b = bb.get(j);
+			if (b >= (byte) '0' && b <= (byte) '9') {
 				iLen *= 16;
-				iLen += (bData[j] - '0');
-			} else if (bData[j] >= (byte) 'a' && bData[j] <= (byte) 'f') {
+				iLen += (b - '0');
+			} else if (b >= (byte) 'a' && b <= (byte) 'f') {
 				iLen *= 16;
-				iLen += (bData[j] - 'a' + 10);
-			} else if (bData[j] == 0x0d) {
+				iLen += (b - 'a' + 10);
+			} else if (b == 0x0d) {
+				break;
+			}
+		}
+		return iLen;
+	}
+
+	protected int getLength(ByteBuffer bb, int iStart, int iEnd) {
+		int iLen = 0;
+		for (int j = iStart; j <= iEnd; j++) {
+			byte b = bb.get(j);
+			if (b >= (byte) '0' && b <= (byte) '9') {
+				iLen *= 10;
+				iLen += (b - '0');
+			} else if (b == 0x0d) {
 				break;
 			}
 		}
@@ -326,6 +370,18 @@ public class HttpHeader {
 		return iLen;
 	}
 
+	protected boolean isChunked(ByteBuffer bb, int iOff, int iEnd) {
+		for (int i = iOff; i < iEnd - 14; i++) {
+			if ((bb.get(i + 0) == 'c' || bb.get(i + 0) == 'C')
+					&& bb.get(i + 1) == 'h' && bb.get(i + 2) == 'u'
+					&& bb.get(i + 3) == 'n' && bb.get(i + 4) == 'k'
+					&& bb.get(i + 5) == 'e' && bb.get(i + 6) == 'd') {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	protected boolean isChunked(byte[] bData, int iOff, int iEnd) {
 		for (int i = iOff; i < iEnd - 14; i++) {
 			if ((bData[i + 0] == 'c' || bData[i + 0] == 'C')
@@ -336,6 +392,28 @@ public class HttpHeader {
 			}
 		}
 		return false;
+	}
+
+	protected int getContentLength(ByteBuffer bb, int iOff, int iEnd) {
+		int iLen = 0;
+		for (int i = iOff; i < iEnd - 14; i++) {
+			if ((bb.get(i + 0) == 'c' || bb.get(i + 0) == 'C') && bb.get(i + 1) == 'o' && bb.get(i + 2) == 'n'
+					&& bb.get(i + 3) == 't' && bb.get(i + 4) == 'e' && bb.get(i + 5) == 'n' && bb.get(i + 6) == 't'
+					&& bb.get(i + 7) == '-' && (bb.get(i + 8) == 'L' || bb.get(i + 8) == 'l') && bb.get(i + 9) == 'e'
+					&& bb.get(i + 10) == 'n' && bb.get(i + 11) == 'g' && bb.get(i + 12) == 't' && bb.get(i + 13) == 'h') {
+				iLen = getLength(bb, i+14, iEnd);
+//				for (int j = i + 14; j <= iEnd; j++) {
+//					if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
+//						iLen *= 10;
+//						iLen += (bData[j] - '0');
+//					} else if (bData[j] == 0x0d) {
+//						break;
+//					}
+//				}
+				break;
+			}
+		}
+		return iLen;
 	}
 
 	protected int getContentLength(byte[] bData, int iOff, int iEnd) {
