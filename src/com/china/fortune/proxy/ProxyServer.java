@@ -134,8 +134,8 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
     private ProxyManager proxyManager = new ProxyManager();
     private ConcurrentLinkedQueue<HostSocket> qAddRead = new ConcurrentLinkedQueue<>();
     @Override
-    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
-        super.selectAction(qSelectedKey);
+    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
+
         while (!qAddRead.isEmpty()) {
             HostSocket ps = qAddRead.poll();
             if (ps != null) {
@@ -155,6 +155,7 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                 }
             }
         }
+        return super.selectAction(qSelectedKey);
     }
 
     public void addPairSocketToRead(SelectionKey from, SocketChannel to) {

@@ -39,8 +39,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
-        super.selectAction(qSelectedKey);
+    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
         while (!qAddRead.isEmpty()) {
             SocketChannelAndByteBuffer scp = qAddRead.poll();
             if (scp != null) {
@@ -50,6 +49,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
                 }
             }
         }
+        return super.selectAction(qSelectedKey);
     }
 
     private SocketChannelAndByteBuffer connectServer(int port) {

@@ -8,7 +8,7 @@ import java.nio.channels.SelectionKey;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class NioThreadPool {
-    private int iDefListSize = 16 * 1024;
+    private int iDefListSize = 64 * 1024;
     protected AtomicInteger iTotalThreadCount = new AtomicInteger(0);
     protected int iMinThreads = Runtime.getRuntime().availableProcessors();
     protected int iMaxThreads = Runtime.getRuntime().availableProcessors() * 2 + 1;

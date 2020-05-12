@@ -81,7 +81,7 @@ public abstract class NioRWAttach {
 		}
 	};
 
-	protected void selectAction(FastList<SelectionKey> qSelectedKey) {
+	protected int selectAction(FastList<SelectionKey> qSelectedKey) {
 		int iSel;
 		try {
 			iSel = mSelector.selectNow();
@@ -111,6 +111,7 @@ public abstract class NioRWAttach {
 				selectedKeys.clear();
 			}
 		}
+		return iSel;
 	}
 
 	public void interestOps(SelectionKey key, int ops) {

@@ -19,8 +19,8 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
     private int outPort = 9999;
 
     @Override
-    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
-        super.selectAction(qSelectedKey);
+    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
+
         while (!qAddRead.isEmpty()) {
             PairSocket ps = qAddRead.poll();
             if (ps != null) {
@@ -28,6 +28,7 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
                 sk.attach(ps.from);
             }
         }
+        return super.selectAction(qSelectedKey);
     }
 
     public boolean start(int iPort, String remoteIP, int remotePort) {

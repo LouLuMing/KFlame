@@ -16,7 +16,7 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 	protected abstract Object onAccept(SocketChannel sc, Object objForThread);
 	protected abstract boolean onRead(SocketChannel sc, Object objForClient, Object objForThread);
 	@Override
-	protected void selectAction(FastList<SelectionKey> qSelectedKey) {
+	protected int selectAction(FastList<SelectionKey> qSelectedKey) {
 		int iSel;
 		try {
 			iSel = mSelector.selectNow();
@@ -49,6 +49,7 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 				selectedKeys.clear();
 			}
 		}
+		return iSel;
 	}
 
 	@Override

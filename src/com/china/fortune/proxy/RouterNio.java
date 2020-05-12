@@ -12,8 +12,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RouterNio extends NioRWAttach {
     @Override
-    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
-        super.selectAction(qSelectedKey);
+    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
+
         while (!qAddRead.isEmpty()) {
             PairSocket ps = qAddRead.poll();
             if (ps != null) {
@@ -23,6 +23,7 @@ public class RouterNio extends NioRWAttach {
                 skFrom.attach(ps.to);
             }
         }
+        return super.selectAction(qSelectedKey);
     }
 
     protected NioSocketActionType onRead(SelectionKey key, Object objForThread) {

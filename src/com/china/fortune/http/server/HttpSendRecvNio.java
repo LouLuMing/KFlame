@@ -36,8 +36,8 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
     }
 
     @Override
-    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
-        super.selectAction(qSelectedKey);
+    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
+
         while (!qAddRead.isEmpty()) {
             SendData ps = qAddRead.poll();
             if (ps != null) {
@@ -50,6 +50,7 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
                 }
             }
         }
+        return super.selectAction(qSelectedKey);
     }
 
     protected int iMaxHttpHeadLength = 2 * 1024;
