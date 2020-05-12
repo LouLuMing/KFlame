@@ -25,6 +25,6 @@ public abstract class NioRead extends NioRWAttach {
 	}
 	
 	@Override
-	protected void onClose(SelectionKey key, Object objForClient) {
+	protected void onClose(SelectionKey key) {
 	}
 }

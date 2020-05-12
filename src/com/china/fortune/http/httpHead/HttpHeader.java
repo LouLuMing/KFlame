@@ -1,5 +1,6 @@
 package com.china.fortune.http.httpHead;
 
+import com.china.fortune.common.ByteAction;
 import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.compress.GZipCompressor;
 import com.china.fortune.global.ConstData;
@@ -106,7 +107,7 @@ public class HttpHeader {
 				iIndex--;
 			}
 			if (iIndex > iStart) {
-				String sKey = StringAction.newString(bData, iStart, iIndex - iStart + 1);
+				String sKey = StringAction.newString(bData, iStart, iIndex+1);
 				iIndex = iPos + 1;
 				while (bData.get(iIndex) == ' ') {
 					iIndex++;
@@ -115,7 +116,7 @@ public class HttpHeader {
 					iEnd--;
 				}
 				if (iEnd > iIndex) {
-					String sValue = StringAction.newString(bData, iIndex, iEnd - iIndex + 1);
+					String sValue = StringAction.newString(bData, iIndex, iEnd+1);
 					addHeader(sKey, sValue);
 				}
 			}
@@ -264,7 +265,7 @@ public class HttpHeader {
 		}
 	}
 
-	static final protected int iMinGZipLength = 1024 * 4;
+	static final public int iMinGZipLength = 1024 * 4;
 
 	public void setBodyGZip(byte[] bData) {
 		if (bData != null) {
@@ -484,5 +485,22 @@ public class HttpHeader {
 		return rs;
 	}
 
+	public byte[] toByte() {
+		int iLen = 0;
+		byte[] bResBody = getByteBody();
+		if (bResBody != null) {
+			iLen = bResBody.length;
+		}
+		String sHeader = toString();
+		byte[] bHeader = null;
+		try {
+			bHeader = sHeader.getBytes(ConstData.sHttpCharset);
+		} catch (Exception e) {
+		}
+		if (bHeader != null) {
+			iLen += bHeader.length;
+		}
 
+		return ByteAction.append(bHeader, bResBody);
+	}
 }

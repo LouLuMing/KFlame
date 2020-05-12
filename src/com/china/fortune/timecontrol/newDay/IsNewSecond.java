@@ -3,6 +3,7 @@ package com.china.fortune.timecontrol.newDay;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.china.fortune.global.Log;
+import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.thread.ThreadUtils;
 import com.china.fortune.thread.AutoIncreaseThreadPool;
 
@@ -30,18 +31,14 @@ public class IsNewSecond {
 
 	public static void main(String[] args) {
 
-		AutoIncreaseThreadPool threadPool = new AutoIncreaseThreadPool() {
+		AutoThreadPool threadPool = new AutoThreadPool() {
 			IsNewSecond ins = new IsNewSecond();
 
 			@Override
-			protected void doAction(Object obj) {
+			protected boolean doAction(Object obj) {
 				if (ins.isNew()) {
 					Log.log("isNew");
 				}
-			}
-
-			@Override
-			protected boolean haveThingsToDo(Object obj) {
 				return true;
 			}
 

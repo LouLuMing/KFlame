@@ -18,6 +18,7 @@ public class MySqlDbAction extends DbAction {
 	}
 	
 	static final private String sMySqlJdbcHead = "jdbc:mysql://";
+	//useAffectedRows=true
 	static final private String sMySqlJdbcParam = "?autoReconnect=true&useUnicode=true&useSSL=false&characterEncoding=utf-8&allowMultiQueries=true&serverTimezone=UTC";
 
 	public String showSelectDatabase() {

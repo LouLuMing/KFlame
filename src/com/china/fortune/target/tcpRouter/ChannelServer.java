@@ -80,7 +80,8 @@ public class ChannelServer extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
+        Object objForClient = key.attachment();
         Integer port = (Integer)objForClient;
         channelObj.sendCloseEvent(port);
         lsSC.free(port);

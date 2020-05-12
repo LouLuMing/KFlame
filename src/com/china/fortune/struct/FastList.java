@@ -79,6 +79,16 @@ public class FastList<E> {
         }
     }
 
+    public E getAndSetNull(int index) {
+        if (index >= 0 && index < iSize) {
+            E obj = (E)elementData[index];
+            elementData[index] = null;
+            return obj;
+        } else {
+            return null;
+        }
+    }
+
     public E set(int index, E element) {
         if (index >= 0 && index < iSize) {
             E oldValue = (E)elementData[index];
@@ -95,6 +105,10 @@ public class FastList<E> {
 
     public int size() {
         return iSize;
+    }
+
+    public void size(int i) {
+        iSize = i;
     }
 
     public void add(int index, E element) {

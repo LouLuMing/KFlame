@@ -1,5 +1,10 @@
 package com.china.fortune.socket.selectorManager;
 
+import com.china.fortune.global.Log;
+import com.china.fortune.socket.EmptySocketControllerNoSafe;
+import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.struct.FastList;
+
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
@@ -7,13 +12,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Set;
-
-import com.china.fortune.global.ConstData;
-import com.china.fortune.global.Log;
-import com.china.fortune.socket.EmptySocketControllerNoSafe;
-import com.china.fortune.socket.SocketChannelHelper;
-import com.china.fortune.struct.EnConcurrentLinkedQueue;
-import com.china.fortune.thread.AutoIncreaseThreadPool;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // accept, onaccept (no more cost)
 // first start open selector(call start function)
@@ -21,15 +20,13 @@ import com.china.fortune.thread.AutoIncreaseThreadPool;
 
 
 public abstract class NioRWAttach {
-	protected final int iSelectSleepTime = 50;
-	protected EnConcurrentLinkedQueue<SelectionKey> qSelectedKey = new EnConcurrentLinkedQueue<SelectionKey>(18);
 	protected Selector mSelector = null;
 
 	protected abstract NioSocketActionType onRead(SelectionKey key, Object objForThread);
 
 	protected abstract NioSocketActionType onWrite(SelectionKey key, Object objForThread);
 
-	protected abstract void onClose(SelectionKey key, Object objForClient);
+	protected abstract void onClose(SelectionKey key);
 
 	protected abstract Object createObjectInThread();
 
@@ -61,17 +58,14 @@ public abstract class NioRWAttach {
 				SelectionKey sk = addRead(sc);
 				emptySocketController.add(sk, iQueue);
 				return sk;
-			} else {
-				SocketChannelHelper.close(sc);
 			}
-		} else {
-			SocketChannelHelper.close(sc);
 		}
+		SocketChannelHelper.close(sc);
 		return null;
 	}
 
-	protected final EmptySocketControllerNoSafe emptySocketController = new EmptySocketControllerNoSafe(6, 7,
-			65536 * 4) {
+	protected final EmptySocketControllerNoSafe emptySocketController = new EmptySocketControllerNoSafe(8, 5,
+			16*1024) {
 		@Override
 		public void onTimeout(long lLimited, SelectionKey[] lsData, int iSize) {
 			for (int i = 0; i < iSize; i++) {
@@ -79,7 +73,6 @@ public abstract class NioRWAttach {
 				if (key != null) {
 					if (key.isValid() && isInvalidSocket(lLimited, key.attachment())) {
 //						Log.logError("isInvalidSocket " + IPHelper.getRemoteSocketAddress((SocketChannel)key.channel()));
-						Log.logError("isInvalidSocket");
 						freeKeyAndSocket(key);
 					}
 					lsData[i] = null;
@@ -88,61 +81,34 @@ public abstract class NioRWAttach {
 		}
 	};
 
-	protected void selectAction() {
+	protected void selectAction(FastList<SelectionKey> qSelectedKey) {
 		int iSel;
-		if (qSelectedKey.haveSpace()) {
-			try {
-				iSel = mSelector.select(iSelectSleepTime);
-			} catch (Exception e) {
-				Log.logException(e);
-				iSel = 0;
-			}
-			if (iSel > 0) {
-				Set<SelectionKey> selectedKeys = mSelector.selectedKeys();
-				if (selectedKeys != null) {
-					emptySocketController.checkTimeout();
-					for (SelectionKey key : selectedKeys) {
-						if (key.isValid()) {
-							if (key.isReadable() || key.isWritable()) {
-								key.interestOps(0);
-								qSelectedKey.addUntilSuccess(key);
-							} else if (key.isAcceptable()) {
-								SocketChannel sc = accept(key);
-								if (sc != null) {
-									acceptSocket(sc);
-								}
+		try {
+			iSel = mSelector.selectNow();
+		} catch (Exception e) {
+			Log.logException(e);
+			iSel = 0;
+		}
+		if (iSel > 0) {
+			Set<SelectionKey> selectedKeys = mSelector.selectedKeys();
+			if (selectedKeys != null) {
+				emptySocketController.checkTimeout();
+				for (SelectionKey key : selectedKeys) {
+					if (key.isValid()) {
+						if (key.isReadable() || key.isWritable()) {
+							key.interestOps(0);
+							qSelectedKey.add(key);
+						} else if (key.isAcceptable()) {
+							SocketChannel sc = accept(key);
+							if (sc != null) {
+								acceptSocket(sc);
 							}
-						} else {
-							freeKeyAndSocket(key);
 						}
+					} else {
+						freeKeyAndSocket(key);
 					}
-					selectedKeys.clear();
 				}
-			}
-		}
-	}
-
-	protected class SelectThread extends Thread {
-		private boolean bRunning = true;
-
-		@Override
-		public void run() {
-			while (bRunning) {
-				try {
-					selectAction();
-				} catch (Exception e) {
-					Log.logException(e);
-				} catch (Error e) {
-					Log.logException(e);
-				}
-			}
-		}
-
-		public void waitToStop() {
-			bRunning = false;
-			try {
-				this.join();
-			} catch (Exception e) {
+				selectedKeys.clear();
 			}
 		}
 	}
@@ -154,30 +120,34 @@ public abstract class NioRWAttach {
 		}
 	}
 
-	private SelectThread selectThread = new SelectThread();
-	private AutoIncreaseThreadPool readThreaPool = new AutoIncreaseThreadPool() {
+	private NioThreadPool readThreaPool = new NioThreadPool() {
+		private AtomicBoolean abSelect = new AtomicBoolean(true);
 		@Override
-		protected void doAction(Object objForThread) {
-			SelectionKey key = qSelectedKey.poll();
-			if (key != null) {
-				switch (readSocket(key, objForThread)) {
-				case OP_READ:
-					key.interestOps(SelectionKey.OP_READ);
-					break;
-				case OP_WRITE:
-					key.interestOps(SelectionKey.OP_WRITE);
-					break;
-				case OP_CLOSE:
-					onClose(key, key.attachment());
-					freeKeyAndSocket(key);
-					break;
+		protected boolean doAction(FastList<SelectionKey> qSelectedKey, Object objForThread) {
+			if (abSelect.compareAndSet(true, false)) {
+				selectAction(qSelectedKey);
+				abSelect.set(true);
+			}
+			int iSize = qSelectedKey.size();
+			for (int i = 0; i < iSize; i++) {
+				SelectionKey key = qSelectedKey.getAndSetNull(i);
+				if (key != null) {
+					switch (readSocket(key, objForThread)) {
+						case OP_READ:
+							key.interestOps(SelectionKey.OP_READ);
+							break;
+						case OP_WRITE:
+							key.interestOps(SelectionKey.OP_WRITE);
+							break;
+						case OP_CLOSE:
+							onClose(key);
+							freeKeyAndSocket(key);
+							break;
+					}
 				}
 			}
-		}
-
-		@Override
-		protected boolean haveThingsToDo(Object objForThread) {
-			return qSelectedKey.size() > 0;
+			qSelectedKey.size(0);
+			return iSize > 0;
 		}
 
 		@Override
@@ -288,9 +258,9 @@ public abstract class NioRWAttach {
 		return selectionKey;
 	}
 
-//	protected void interestRead(SelectionKey key) {
-//		key.interestOps(SelectionKey.OP_READ);
-//	}
+	protected void interestRead(SelectionKey key) {
+		key.interestOps(SelectionKey.OP_READ);
+	}
 
 	protected SelectionKey interestRead(SocketChannel sc) {
 		SelectionKey key = sc.keyFor(mSelector);
@@ -340,8 +310,7 @@ public abstract class NioRWAttach {
 	}
 
 	protected void startThreads(int iMinThread, int iMaxThread) {
-		selectThread.start();
-		readThreaPool.setSleepTime(10);
+		readThreaPool.setSleepTime(5);
 		readThreaPool.start(iMinThread, iMaxThread);
 		Log.logClass("minThread:" + iMinThread + " maxThread:" + iMaxThread);
 	}
@@ -357,18 +326,12 @@ public abstract class NioRWAttach {
 	}
 
 	public void join() {
-		try {
-			selectThread.join();
-		} catch (Exception e) {
-			Log.logClass(e.getMessage());
-		}
-		stop();
+		readThreaPool.join();
+		closeSelector();
 	}
 
 	public void stop() {
-		selectThread.waitToStop();
 		readThreaPool.waitToStop();
-		qSelectedKey.clear();
 		closeSelector();
 	}
 
@@ -407,6 +370,6 @@ public abstract class NioRWAttach {
 	}
 
 	public String doCommand(String sCmd) {
-		return readThreaPool.showStatus() + " Queue:" + qSelectedKey.size();
+		return readThreaPool.showStatus();
 	}
 }

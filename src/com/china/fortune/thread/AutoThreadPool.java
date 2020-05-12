@@ -1,11 +1,10 @@
 package com.china.fortune.thread;
 
+import com.china.fortune.global.ConstData;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.china.fortune.global.ConstData;
-import com.china.fortune.global.Log;
-
-public abstract class AutoIncreaseThreadPool {
+public abstract class AutoThreadPool {
 	protected AtomicInteger iTotalThreadCount = new AtomicInteger(0);
 	protected int iMinThreads = Runtime.getRuntime().availableProcessors();
 	protected int iMaxThreads = Runtime.getRuntime().availableProcessors() * 2 + 1;
@@ -18,20 +17,21 @@ public abstract class AutoIncreaseThreadPool {
 
 	abstract protected Object onCreate();
 
-	abstract protected void doAction(Object objForThread);
-
-	abstract protected boolean haveThingsToDo(Object objForThread);
+	abstract protected boolean doAction(Object objForThread);
 
 	abstract protected void onDestroy(Object objForThread);
 
 	protected boolean bRunning = true;
-
+	protected Thread tFirst = null;
+	protected long lFirstThreadId = 0;
 	public void start() {
 		bRunning = true;
 		if (iMinThreads > iMaxThreads) {
 			iMinThreads = iMaxThreads;
 		}
-		for (int i = 0; i < iMinThreads; i++) {
+		tFirst = addNewThread();
+		lFirstThreadId = tFirst.getId();
+		for (int i = 1; i < iMinThreads; i++) {
 			addNewThread();
 		}
 	}
@@ -58,6 +58,13 @@ public abstract class AutoIncreaseThreadPool {
 		}
 	}
 
+	public void join() {
+		ThreadUtils.join(tFirst);
+		while (iTotalThreadCount.get() != 0) {
+			ThreadUtils.sleep(ConstData.iThreadSleepTime);
+		}
+	}
+
 	public boolean isRun() {
 		return bRunning;
 	}
@@ -74,17 +81,14 @@ public abstract class AutoIncreaseThreadPool {
 		return iTotalThreadCount.get();
 	}
 
-	protected void addNewThread() {
-		iTotalThreadCount.getAndIncrement();
-		Thread t = new Thread() {
-			@Override
-			public void run() {
-				Object obj = onCreate();
-				doWorkInThread(obj);
-				onDestroy(obj);
-			}
-		};
+	protected Thread addNewThread() {
+		Thread t = new Thread(() -> {
+			Object obj = onCreate();
+			doWorkInThread(obj);
+			onDestroy(obj);
+		});
 		t.start();
+		return t;
 	}
 
 	protected int iLimitQuitRequest = 50;
@@ -94,31 +98,35 @@ public abstract class AutoIncreaseThreadPool {
 		boolean isNeedDecrement = true;
 		int iQuitRequest = 0;
 		int iContinuouslyWork = 0;
+		long lThreadId = Thread.currentThread().getId();
 		while (bRunning) {
-			if (haveThingsToDo(obj)) {
+//			try {
+//				doAction(obj);
+//			} catch (Exception e) {
+//				Log.logException(e);
+//			} catch (Error e) {
+//				Log.logException(e);
+//			}
+			if (doAction(obj)) {
 				iQuitRequest = 0;
 				if (++iContinuouslyWork > iLimitContinuousWork) {
 					if (iTotalThreadCount.get() < iMaxThreads) {
+						iTotalThreadCount.getAndIncrement();
 						addNewThread();
 					}
 					iContinuouslyWork = 0;
 				}
-				try {
-					doAction(obj);
-				} catch (Exception e) {
-					Log.logException(e);
-				} catch (Error e) {
-					Log.logException(e);
-				}
 			} else {
 				iContinuouslyWork = 0;
-				if (++iQuitRequest > iLimitQuitRequest) {
-					if (iTotalThreadCount.get() > iMinThreads) {
-						if (iTotalThreadCount.getAndDecrement() > iMinThreads) {
-							isNeedDecrement = false;
-							break;
-						} else {
-							iTotalThreadCount.getAndIncrement();
+				if (lFirstThreadId != lThreadId) {
+					if (++iQuitRequest > iLimitQuitRequest) {
+						if (iTotalThreadCount.get() > iMinThreads) {
+							if (iTotalThreadCount.getAndDecrement() > iMinThreads) {
+								isNeedDecrement = false;
+								break;
+							} else {
+								iTotalThreadCount.getAndIncrement();
+							}
 						}
 					}
 				}

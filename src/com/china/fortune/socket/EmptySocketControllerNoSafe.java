@@ -48,13 +48,16 @@ public abstract class EmptySocketControllerNoSafe {
 		iNowTicket = 0;
 	}
 	
-	public void add(SelectionKey key) {
+	public boolean add(SelectionKey key) {
 		int iQueue = iNowTicket & iArrayCountModulo;
 		int iIndex = lsArrayIndex[iQueue];
 		if (iIndex < iArraySize) {
 			SelectionKey[] lsNow = lsArray[iQueue];
 			lsNow[iIndex] = key;
 			lsArrayIndex[iQueue] = iIndex + 1;
+			return true;
+		} else {
+			return false;
 		}
 	}
 	

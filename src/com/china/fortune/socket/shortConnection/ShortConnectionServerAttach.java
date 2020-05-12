@@ -5,6 +5,7 @@ import java.net.Socket;
 
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
+import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.thread.ThreadUtils;
 import com.china.fortune.struct.EnConcurrentLinkedQueue;
 import com.china.fortune.thread.AutoIncreaseThreadPool;
@@ -149,9 +150,9 @@ public abstract class ShortConnectionServerAttach {
 		}
 	}
 
-	private AutoIncreaseThreadPool readThreaPool = new AutoIncreaseThreadPool() {
+	private AutoThreadPool readThreaPool = new AutoThreadPool() {
 		@Override
-		protected void doAction(Object objForThread) {
+		protected boolean doAction(Object objForThread) {
 			Socket sc = qAcceptSocket.poll();
 			if (sc != null) {
 				onRead(sc, objForThread);
@@ -160,12 +161,10 @@ public abstract class ShortConnectionServerAttach {
 				} catch (Exception e) {
 					Log.logClass(e.getMessage());
 				}
+				return true;
+			} else {
+				return false;
 			}
-		}
-
-		@Override
-		protected boolean haveThingsToDo(Object objForThread) {
-			return qAcceptSocket.size() > 0;
 		}
 
 		@Override

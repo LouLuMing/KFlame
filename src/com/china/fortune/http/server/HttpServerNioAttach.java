@@ -112,7 +112,8 @@ public abstract class HttpServerNioAttach extends NioRWAttach {
     }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
+        Object objForClient = key.attachment();
         if (objForClient != null) {
             qObjsForClient.add((HttpServerRequest) objForClient);
         }

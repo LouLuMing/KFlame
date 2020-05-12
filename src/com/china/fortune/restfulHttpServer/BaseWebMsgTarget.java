@@ -5,6 +5,7 @@ import com.china.fortune.global.Log;
 import com.china.fortune.restfulHttpServer.msgSystem.MsgActionInterface;
 import com.china.fortune.restfulHttpServer.msgSystem.MsgInterface;
 import com.china.fortune.thread.AutoIncreaseThreadPool;
+import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.timecontrol.timeout.TimeoutActionThreadSafe;
 
 import java.util.HashMap;
@@ -21,20 +22,22 @@ public abstract class BaseWebMsgTarget extends BaseWebTarget {
         lsMsgAction.put(cls, mai);
     }
 
-    private MsgInterface ota = ((Object dbObj) -> onTimer((MySqlDbAction)dbObj));
-
     protected void setLoopSecond(int iSecond) {
         taObj.setWaitTime(iSecond * 1000);
     }
 
-    protected AutoIncreaseThreadPool msgServer = new AutoIncreaseThreadPool() {
+    protected AutoThreadPool msgServer = new AutoThreadPool() {
         @Override
         protected Object onCreate() {
             return mySqlManager.get();
         }
 
         @Override
-        protected void doAction(Object obj) {
+        protected boolean doAction(Object obj) {
+            if (taObj.isTimeoutAndReset()) {
+                onTimer((MySqlDbAction)obj);
+            }
+
             Object o = lsMessage.poll();
             if (o != null) {
                 if (o instanceof MsgInterface) {
@@ -48,15 +51,9 @@ public abstract class BaseWebMsgTarget extends BaseWebTarget {
                         Log.logClassError("MsgActionInterface miss " + o.getClass().getSimpleName());
                     }
                 }
-            }
-        }
-
-        @Override
-        protected boolean haveThingsToDo(Object obj) {
-            if (taObj.isTimeoutAndReset()) {
-                return lsMessage.add(ota);
+                return true;
             } else {
-                return !lsMessage.isEmpty();
+                return false;
             }
         }
 

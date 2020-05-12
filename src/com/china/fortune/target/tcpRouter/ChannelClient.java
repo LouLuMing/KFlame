@@ -10,6 +10,7 @@ import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.pointToPoint.P2PConnect;
 import com.china.fortune.socket.selectorManager.NioRWAttach;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
+import com.china.fortune.struct.FastList;
 import com.china.fortune.struct.ReuseArrayList;
 import com.china.fortune.xml.XmlNode;
 
@@ -38,8 +39,8 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected void selectAction() {
-        super.selectAction();
+    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
+        super.selectAction(qSelectedKey);
         while (!qAddRead.isEmpty()) {
             SocketChannelAndByteBuffer scp = qAddRead.poll();
             if (scp != null) {
@@ -109,7 +110,8 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
+        Object objForClient = key.attachment();
         int port = (Integer) objForClient;
         channelObj.sendCloseEvent(port);
         lsSC.free(port);

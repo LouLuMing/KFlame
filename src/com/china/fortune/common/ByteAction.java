@@ -1,15 +1,16 @@
 package com.china.fortune.common;
 
 
-import com.china.fortune.global.ConstData;
-
 import java.util.Base64;
 
 
 public class ByteAction {
 	// BIG-ENDIAN
 	// LITTLE-ENDIAN
-
+	static final public char HEX_DIGEST_UPPER[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+			'E', 'F' };
+	static final public char HEX_DIGEST_LOWER[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
+			'e', 'f' };
 	
 	static public void set(byte[] b, byte v) {
 		for (int i = 0; i < b.length; i++) {
@@ -122,8 +123,8 @@ public class ByteAction {
 	static public String toHexString(byte[] bData, int iOff, int iCount) {
 		StringBuilder sb = new StringBuilder(iCount * 2 + 1);
 		for (int i = iOff; i < iOff + iCount; i++) {
-			sb.append(ConstData.HEX_DIGEST_UPPER[((bData[i] >> 4) & 0x0f)]);
-			sb.append(ConstData.HEX_DIGEST_UPPER[(bData[i] & 0x0f)]);
+			sb.append(HEX_DIGEST_UPPER[((bData[i] >> 4) & 0x0f)]);
+			sb.append(HEX_DIGEST_UPPER[(bData[i] & 0x0f)]);
 		}
 		return sb.toString();
 	}
@@ -131,23 +132,21 @@ public class ByteAction {
 	static public String toHexStringLower(byte[] bData, int iOff, int iCount) {
 		StringBuilder sb = new StringBuilder(iCount * 2 + 1);
 		for (int i = iOff; i < iOff + iCount; i++) {
-			sb.append(ConstData.HEX_DIGEST_LOWER[((bData[i] >> 4) & 0x0f)]);
-			sb.append(ConstData.HEX_DIGEST_LOWER[(bData[i] & 0x0f)]);
+			sb.append(HEX_DIGEST_LOWER[((bData[i] >> 4) & 0x0f)]);
+			sb.append(HEX_DIGEST_LOWER[(bData[i] & 0x0f)]);
 		}
 		return sb.toString();
 	}
 	
 	static public String toHexStringWithSpace(byte[] b) {
 		StringBuilder sb = new StringBuilder();
-		if (b.length > 0) {
-			sb.append(ConstData.HEX_DIGEST_UPPER[((b[0] >> 4) & 0x0f)]);
-			sb.append(ConstData.HEX_DIGEST_UPPER[(b[0] & 0x0f)]);
-
-			for (int i = 1; i < b.length; i++) {
-				sb.append(' ');
-				sb.append(ConstData.HEX_DIGEST_UPPER[((b[i] >> 4) & 0x0f)]);
-				sb.append(ConstData.HEX_DIGEST_UPPER[(b[i] & 0x0f)]);
-			}
+		for (int i = 0; i < b.length; i++) {
+			sb.append(HEX_DIGEST_UPPER[((b[i] >> 4) & 0x0f)]);
+			sb.append(HEX_DIGEST_UPPER[(b[i] & 0x0f)]);
+			sb.append(' ');
+		}
+		if (sb.length() > 1) {
+			sb.setLength(sb.length() - 1);
 		}
 		return sb.toString();
 	}

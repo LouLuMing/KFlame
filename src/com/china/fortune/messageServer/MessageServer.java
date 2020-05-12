@@ -58,7 +58,8 @@ public abstract class MessageServer extends NioLoginAttach {
 	}
 
 	@Override
-	protected void onClose(SelectionKey key, Object objForClient) {
+	protected void onClose(SelectionKey key) {
+		Object objForClient = key.attachment();
 		if (objForClient != null) {
 			MessageClient ct = (MessageClient) objForClient;
 			onClose(ct, ct.attachment());

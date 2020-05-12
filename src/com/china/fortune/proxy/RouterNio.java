@@ -3,6 +3,7 @@ package com.china.fortune.proxy;
 import com.china.fortune.global.Log;
 import com.china.fortune.socket.selectorManager.NioRWAttach;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
+import com.china.fortune.struct.FastList;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -11,8 +12,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RouterNio extends NioRWAttach {
     @Override
-    protected void selectAction() {
-        super.selectAction();
+    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
+        super.selectAction(qSelectedKey);
         while (!qAddRead.isEmpty()) {
             PairSocket ps = qAddRead.poll();
             if (ps != null) {
@@ -54,10 +55,10 @@ public class RouterNio extends NioRWAttach {
     }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
         SocketChannel sc = (SocketChannel)key.channel();
         if (sc != null) {
-            SocketChannel to = (SocketChannel) objForClient;
+            SocketChannel to = (SocketChannel) key.attachment();
             if (to != null) {
                 freeKeyAndSocket(to);
             }

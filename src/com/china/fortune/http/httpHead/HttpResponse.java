@@ -1,6 +1,5 @@
 package com.china.fortune.http.httpHead;
 
-import com.china.fortune.common.DateAction;
 import com.china.fortune.file.FileHelper;
 import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.string.StringAction;
@@ -133,24 +132,6 @@ public class HttpResponse extends HttpHeader {
 		}
 	}
 
-	public boolean putFile(String sFileName, String sType) {
-		if (sFileName != null) {
-			File file = new File(sFileName);
-			if (file.exists() && file.isFile()) {
-				byte[] bData = FileHelper.readSmallFile(file);
-				if (bData != null) {
-					String sModify = DateAction.getGMT(file.lastModified());
-					if (sModify != null) {
-						addHeader(HttpHeader.csLastModified, sModify);
-					}
-					return putFile(FileHelper.getFileNameFromFullPath(sFileName), FileHelper.readSmallFile(sFileName), sType);
-				}
-			}
-		}
-		setResponse(404);
-		return false;
-	}
-
 	public boolean putFile(String sFileName) {
 		if (sFileName != null) {
 			File file = new File(sFileName);
@@ -163,8 +144,16 @@ public class HttpResponse extends HttpHeader {
 				}
 			}
 		}
-		setResponse(404);
 		return false;
 	}
 
+	public void setFileHeader(String sFileName) {
+		String sShortFileName = FileHelper.getFileNameFromFullPath(sFileName);
+		String sContentType = HttpProp.getContentTypeByFile(sShortFileName);
+		if (sContentType == null) {
+			sContentType = HttpProp.csDefaultContentType;
+		}
+		addHeader(csContentDisposition, "filename=" + sShortFileName);
+		addHeader(csContentType, sContentType);
+	}
 }

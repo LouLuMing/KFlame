@@ -53,7 +53,8 @@ public abstract class WsServerNewNio extends NioLoginAttach {
     }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
+        Object objForClient = key.attachment();
         if (objForClient != null) {
             WsServerRequest hReq = (WsServerRequest) objForClient;
             hReq.scChannel = null;

@@ -3,6 +3,7 @@ package com.china.fortune.http.server;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioRWAttach;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
+import com.china.fortune.struct.FastList;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -35,8 +36,8 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
     }
 
     @Override
-    protected void selectAction() {
-        super.selectAction();
+    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
+        super.selectAction(qSelectedKey);
         while (!qAddRead.isEmpty()) {
             SendData ps = qAddRead.poll();
             if (ps != null) {
@@ -93,7 +94,7 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
     }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
     }
 
     @Override

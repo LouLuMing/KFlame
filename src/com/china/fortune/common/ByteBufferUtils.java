@@ -1,11 +1,13 @@
 package com.china.fortune.common;
 
-import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 
 import java.nio.ByteBuffer;
 
 public class ByteBufferUtils {
+	static final public char HEX_DIGEST_UPPER[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+			'E', 'F' };
+
 	static public ByteBuffer aloneDirect(ByteBuffer bb) {
 		int iLimit = bb.limit();
 		ByteBuffer bbNew = ByteBuffer.allocate(iLimit);
@@ -114,14 +116,14 @@ public class ByteBufferUtils {
 	static public String toHexString(ByteBuffer bb, int iOff, int iCount) {
 		StringBuilder sb = new StringBuilder(iCount * 2 + 1);
 		for (int i = iOff; i < iOff + iCount; i++) {
-			sb.append(ConstData.HEX_DIGEST_UPPER[((bb.get(i) >> 4) & 0x0f)]);
-			sb.append(ConstData.HEX_DIGEST_UPPER[(bb.get(i) & 0x0f)]);
+			sb.append(HEX_DIGEST_UPPER[((bb.get(i) >> 4) & 0x0f)]);
+			sb.append(HEX_DIGEST_UPPER[(bb.get(i) & 0x0f)]);
 		}
 		return sb.toString();
 	}
 
 	public static void main(String[] args) {
-		ByteBuffer bb = ByteBuffer.allocate(1000);
+		ByteBuffer bb = ByteBuffer.allocateDirect(1000);
 		bb.put("hello".getBytes());
 
 		Log.logClass(bb.position() + ":" + bb.limit());

@@ -21,7 +21,7 @@ public class WsServerNewRequest extends HttpServerRequest {
 
     public SocketChannel scChannel;
 
-    public ByteBuffer bbSend = ByteBuffer.allocate(iDefDataLength);
+    public ByteBuffer bbSend = ByteBuffer.allocate(iDefBufferSize);
 
     public void remaskData() {
         if (hasMask) {

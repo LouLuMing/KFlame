@@ -1,32 +1,28 @@
 package com.china.fortune.http.server;
 
-import com.china.fortune.common.ByteAction;
 import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.easy.Int2Struct;
-import com.china.fortune.file.FileHelper;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.httpHead.HttpRequest;
 import com.china.fortune.http.httpHead.HttpResponse;
-import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.socket.IPHelper;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 import com.china.fortune.string.StringAction;
 import com.china.fortune.xml.ByteParser;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
 public class HttpServerRequest extends HttpRequest {
-    static final protected int iDefDataLength = 4 * 1024;
-    static final protected int iLimitDataLength = 1024 * 1024;
+    static final protected int iDefBufferSize = 4 * 1024;
+    static final protected int iLimitBufferSize = 1024 * 1024;
 
-    protected ByteBuffer bbData = ByteBuffer.allocateDirect(iDefDataLength);
+    protected ByteBuffer bbData = ByteBuffer.allocateDirect(iDefBufferSize);
     public int iHeadLength = 0;
     public int iDataLength = 0;
     public boolean notChuncked = true;
@@ -66,8 +62,8 @@ public class HttpServerRequest extends HttpRequest {
 
     public void clear() {
         super.clear();
-        if (bbData.capacity() > iLimitDataLength) {
-            bbData = ByteBuffer.allocateDirect(iDefDataLength);
+        if (bbData.capacity() > iLimitBufferSize) {
+            bbData = ByteBuffer.allocateDirect(iDefBufferSize);
         } else {
             bbData.clear();
         }
@@ -87,7 +83,7 @@ public class HttpServerRequest extends HttpRequest {
             if (iMax > iDataLength) {
                 iMax = iDataLength;
             }
-            sBody = StringAction.newString(bbData, iHeadLength, iMax, sCharset);
+            sBody = StringAction.newString(bbData, iHeadLength, iHeadLength + iMax, sCharset);
         }
         return sBody;
     }
@@ -100,7 +96,7 @@ public class HttpServerRequest extends HttpRequest {
             if (sCharset == null) {
                 sCharset = ConstData.sHttpCharset;
             }
-            sBody = StringAction.newString(bbData, iHeadLength, iDataLength, sCharset);
+            sBody = StringAction.newString(bbData, iHeadLength, iHeadLength + iDataLength, sCharset);
         }
         return sBody;
     }
@@ -124,9 +120,9 @@ public class HttpServerRequest extends HttpRequest {
     }
 
     private int findFormData(ByteBuffer bb, int iOff, byte[] bTag) {
-        int i = ByteBufferUtils.indexOf(bb, iOff, bTag);
+        int i = ByteBufferUtils.indexOf(bb, iOff, bb.position()+1, bTag);
         if (i > 0) {
-            i = ByteBufferUtils.indexOf(bb, i, fbCRLFCRLF);
+            i = ByteBufferUtils.indexOf(bb, i, bb.position()+1, fbCRLFCRLF);
             if (i > 0) {
                 return i + 4;
             }
@@ -149,7 +145,7 @@ public class HttpServerRequest extends HttpRequest {
     static final private byte bDot = '"';
 
     private String findFormDataName(ByteBuffer bb, int iStart) {
-        int i = ByteBufferUtils.indexOf(bb, iStart, sNameDot);
+        int i = ByteBufferUtils.indexOf(bb, iStart, bb.position()+1, sNameDot);
         if (i > 0) {
             i += sNameDot.length;
             int j = ByteBufferUtils.indexOf(bb, i, bDot);
@@ -184,7 +180,7 @@ public class HttpServerRequest extends HttpRequest {
                     int iStart = findFormData(bbData, iOff, bTag);
                     if (iStart > 0) {
                         String sName = findFormDataName(bbData, iOff);
-                        iOff = ByteBufferUtils.indexOf(bbData, iStart, bTag);
+                        iOff = ByteBufferUtils.indexOf(bbData, iStart, bbData.position()+1, bTag);
                         if (iOff > 0) {
                             int iEnd = ByteBufferUtils.lastIndexOf(bbData, iOff, fbCRLF);
                             if (iEnd >= iStart) {
@@ -229,7 +225,7 @@ public class HttpServerRequest extends HttpRequest {
 
     private int findChunkLen() {
         int iChuckHead = iHeadLength + iDataLength;
-        int i = ByteBufferUtils.indexOf(bbData, iChuckHead, HttpHeader.fbCRLF);
+        int i = ByteBufferUtils.indexOf(bbData, iChuckHead, bbData.position() +1, HttpHeader.fbCRLF);
         if (i > 0) {
             int iChunkLen = hexToInt(bbData, iChuckHead, bbData.position());
             if (iChunkLen > 0) {
@@ -365,13 +361,27 @@ public class HttpServerRequest extends HttpRequest {
 
         if (bbData.capacity() < iLen) {
             bbData = ByteBuffer.allocateDirect(iLen);
+        } else {
+            bbData.clear();
         }
-        bbData.clear();
         if (bHeader != null) {
             bbData.put(bHeader);
         }
         if (bResBody != null) {
             bbData.put(bResBody);
+        }
+        bbData.flip();
+    }
+
+    public void setDataToWrite(byte[] bData) {
+        int iLen = bData.length;
+        if (bbData.capacity() < iLen) {
+            bbData = ByteBuffer.allocateDirect(iLen);
+        } else {
+            bbData.clear();
+        }
+        if (bData != null) {
+            bbData.put(bData);
         }
         bbData.flip();
     }

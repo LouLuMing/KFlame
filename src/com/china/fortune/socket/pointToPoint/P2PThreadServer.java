@@ -5,6 +5,7 @@ import java.nio.channels.SocketChannel;
 
 import com.china.fortune.struct.EnConcurrentLinkedQueue;
 import com.china.fortune.thread.AutoIncreaseThreadPool;
+import com.china.fortune.thread.AutoThreadPool;
 
 public abstract class P2PThreadServer extends P2PServer {
 	private EnConcurrentLinkedQueue<ByteBuffer> qFreeQueue = new EnConcurrentLinkedQueue<ByteBuffer>(14);
@@ -43,19 +44,17 @@ public abstract class P2PThreadServer extends P2PServer {
 		return rs;
 	}
 	
-	private AutoIncreaseThreadPool threadPool = new AutoIncreaseThreadPool() {
+	private AutoThreadPool threadPool = new AutoThreadPool() {
 		@Override
-		protected void doAction(Object objForThread) {
+		protected boolean doAction(Object objForThread) {
 			ByteBuffer bb = qWorkQueue.poll();
 			if (bb != null) {
 				doWork(objForThread, bb);
 				qFreeQueue.add(bb);
+				return true;
+			} else {
+				return false;
 			}
-		}
-
-		@Override
-		protected boolean haveThingsToDo(Object objForThread) {
-			return !qWorkQueue.isEmpty();
 		}
 
 		@Override

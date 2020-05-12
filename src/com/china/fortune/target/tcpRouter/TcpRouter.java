@@ -6,6 +6,7 @@ import com.china.fortune.processflow.ProcessAction;
 import com.china.fortune.reflex.ClassXml;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioAcceptDelayAttach;
+import com.china.fortune.struct.FastList;
 import com.china.fortune.xml.XmlNode;
 
 import java.nio.ByteBuffer;
@@ -18,8 +19,8 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
     private int outPort = 9999;
 
     @Override
-    protected void selectAction() {
-        super.selectAction();
+    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
+        super.selectAction(qSelectedKey);
         while (!qAddRead.isEmpty()) {
             PairSocket ps = qAddRead.poll();
             if (ps != null) {
@@ -95,9 +96,10 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
 //    }
 
     @Override
-    protected void onClose(SelectionKey key, Object objForClient) {
+    protected void onClose(SelectionKey key) {
         SocketChannel sc = (SocketChannel)key.channel();
         if (sc != null) {
+            Object objForClient = key.attachment();
             SocketChannel to = (SocketChannel) objForClient;
             if (to != null) {
                 freeKeyAndSocket(to);
