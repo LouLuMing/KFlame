@@ -88,6 +88,29 @@ public class GZipCompressor {
 		}
 	}
 
+//	public static void compress(InputStream is, OutputStream os) {
+//		GZIPOutputStream gos = null;
+//		try {
+//			gos = new GZIPOutputStream(os);
+//			int count;
+//			byte data[] = new byte[BUFFER];
+//			while ((count = is.read(data, 0, BUFFER)) != -1) {
+//				gos.write(data, 0, count);
+//			}
+//			gos.finish();
+//			gos.flush();
+//		} catch (Exception e) {
+//			Log.logClass(e.getMessage());
+//		}
+//		if (gos != null) {
+//			try {
+//				gos.close();
+//			} catch (Exception e) {
+//				Log.logClass(e.getMessage());
+//			}
+//		}
+//	}
+
 	public static void compress(String path) throws Exception {
 		compress(path, true);
 	}

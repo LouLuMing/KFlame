@@ -7,7 +7,6 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import com.china.fortune.common.ByteAction;
 import com.china.fortune.common.ByteBufferUtils;
@@ -809,7 +808,7 @@ public class StringAction {
         return -1;
     }
 
-    static public String FenToYuan(long money) {
+    static public String fenToYuan(long money) {
         long yuan = money / 100;
         int fen = (int) (money % 100);
         if (fen == 0) {
@@ -833,8 +832,8 @@ public class StringAction {
         }
     }
 
-    static public String FenToYuan(int money) {
-        return FenToYuan((long) (money));
+    static public String fenToYuan(int money) {
+        return fenToYuan((long) (money));
     }
 
     static public int yuanToFen(String sYuan) {
@@ -981,10 +980,10 @@ public class StringAction {
         Log.log("" + calSigner("replac"));
         Log.log("" + calSigner("select"));
 
-        Log.log("" + FenToYuan(1000));
-        Log.log("" + FenToYuan(1001));
-        Log.log("" + FenToYuan(1011));
-        Log.log("" + FenToYuan(11));
+        Log.log("" + fenToYuan(1000));
+        Log.log("" + fenToYuan(1001));
+        Log.log("" + fenToYuan(1011));
+        Log.log("" + fenToYuan(11));
         Log.log("" + hexToInt("1a72"));
 
         String sData = "Get /Hello HTTP 1.1";

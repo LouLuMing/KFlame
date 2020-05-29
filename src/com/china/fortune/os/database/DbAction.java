@@ -933,4 +933,9 @@ public abstract class DbAction {
         String sSql = "select count(1) from " + sTable;
         return selectLong(sSql);
     }
+
+    public boolean createDatabase(String sDatabase) {
+        String sSql = "create database " + sDatabase;
+        return execute(sSql) > 0;
+    }
 }

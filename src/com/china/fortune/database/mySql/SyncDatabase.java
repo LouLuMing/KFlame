@@ -11,11 +11,11 @@ public class SyncDatabase {
 	private DbAction dbObj1;
 	private DbAction dbObj2;
 
-	public SyncDatabase(String s1, DbAction db1, String s2, DbAction db2) {
+	public SyncDatabase(String s1, DbAction to, String s2, DbAction from) {
 		sName1 = s1;
 		sName2 = s2;
-		dbObj1 = db1;
-		dbObj2 = db2;
+		dbObj1 = to;
+		dbObj2 = from;
 	}
 
 	private void showMiss(String sTable1, ArrayList<String> lsTable1, String sTable2, ArrayList<String> lsTable2) {
@@ -51,8 +51,14 @@ public class SyncDatabase {
 			if (lsTable2.contains(table)) {
 				ArrayList<String> lsColName1 = dbObj1.selectColumnName(table);
 				ArrayList<String> lsColName2 = dbObj2.selectColumnName(table);
-				if (lsColName1.size() > 0 && lsColName2.size() > 0) {
+				if (lsColName1.size() != lsColName2.size()) {
 					showMiss(sName1 + ":" + table, lsColName1, sName2 + ":" + table, lsColName2);
+				}
+				long iCount1 = dbObj1.countData(table);
+				long iCount2 = dbObj2.countData(table);
+				if (iCount1 != iCount2) {
+					Log.log(sName1 + " " + table + " " + iCount1);
+					Log.log(sName2 + " " + table + " " + iCount2);
 				}
 			}
 		}
@@ -95,5 +101,20 @@ public class SyncDatabase {
 		}
 
 		Log.logClass("finish");
+	}
+
+	public void copyFrom1To2() {
+		ArrayList<String> lsTable1 = dbObj1.selectAllTableName();
+		ArrayList<String> lsTable2 = dbObj2.selectAllTableName();
+
+		for (String table : lsTable1) {
+			if (!lsTable2.contains(table)) {
+				String sSql = dbObj1.createTableSql(table);
+				dbObj2.execute(sSql);
+				String sDataSql = dbObj1.showDataSql(table);
+				dbObj2.execute(sDataSql);
+				Log.log("copyFrom1To2 " + sName1 + ":" + sName2 + " " + table);
+			}
+		}
 	}
 }

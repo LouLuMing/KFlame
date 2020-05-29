@@ -339,6 +339,10 @@ public class HttpServerRequest extends HttpRequest {
         return parseRequest(bbData, 0);
     }
 
+    public boolean parseHeader() {
+        return parseHeader(bbData);
+    }
+
     public boolean parseRequestAndHeader() {
         return parseRequestAndHeader(bbData);
     }
@@ -414,4 +418,12 @@ public class HttpServerRequest extends HttpRequest {
         return SocketChannelHelper.blockWrite(to, bbData, 3);
     }
 
+    public boolean findIfNoneMatch() {
+        int i = ByteBufferUtils.indexOf(bbData, 0, bbData.position() + 1, HttpHeader.fbCRLF);
+        if (i > 0) {
+            return findIfNoneMatch(bbData, i, iHeadLength) > 0;
+        } else {
+            return false;
+        }
+    }
 }

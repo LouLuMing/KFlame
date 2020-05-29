@@ -91,6 +91,17 @@ public class ProxyManager {
         }
     }
 
+    public JSONArray toJSONArray(String sResource) {
+        JSONArray jarr = new JSONArray();
+        for (int i = 0; i < lsResourceMap.size(); i++) {
+            HostList pl = lsResourceMap.get(i);
+            if (pl != null && pl.equals(sResource)) {
+                jarr.put(pl.toJSONObject());
+            }
+        }
+        return jarr;
+    }
+
     public JSONArray toJSONArray() {
         JSONArray jarr = new JSONArray();
         for (int i = 0; i < lsResourceMap.size(); i++) {

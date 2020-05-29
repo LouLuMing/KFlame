@@ -16,7 +16,7 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 	protected abstract Object onAccept(SocketChannel sc, Object objForThread);
 	protected abstract boolean onRead(SocketChannel sc, Object objForClient, Object objForThread);
 	@Override
-	protected int selectAction(FastList<SelectionKey> qSelectedKey) {
+	synchronized protected void selectAction(FastList<SelectionKey> qSelectedKey) {
 		int iSel;
 		try {
 			iSel = mSelector.selectNow();
@@ -49,7 +49,6 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 				selectedKeys.clear();
 			}
 		}
-		return iSel;
 	}
 
 	@Override
@@ -70,7 +69,7 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 	}
 
 	@Override
-	protected NioSocketActionType readSocket(SelectionKey key, Object objForThread) {
+	protected void readSocket(SelectionKey key, Object objForThread) {
 		boolean bOK = false;
 		SocketChannel sc = (SocketChannel) key.channel();
 		Object objForClient = key.attachment();
@@ -84,9 +83,10 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 			}
 		}
 		if (bOK) {
-			return NioSocketActionType.OP_READ;
+			key.interestOps(SelectionKey.OP_READ);
 		} else {
-			return NioSocketActionType.OP_CLOSE;
+			onClose(key);
+			freeKeyAndSocket(key);
 		}
 	}
 

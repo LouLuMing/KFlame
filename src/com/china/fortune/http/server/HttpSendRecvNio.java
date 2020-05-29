@@ -13,8 +13,14 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
     abstract public void onRecv(SelectionKey from, HttpServerRequest hRequest);
     public void addWrite(SocketChannel to, SelectionKey from, HttpServerRequest hRequest) {
         if (SocketChannelHelper.write(to, hRequest.bbData) >= 0) {
-            qAddRead.add(new SendData(to, from, hRequest));
-            mSelector.wakeup();
+            SendData ps = new SendData(to, from, hRequest);
+            if (ps.hRequest.bbData.remaining() > 0) {
+                SelectionKey sk = addWrite(ps.toSc);
+                sk.attach(ps);
+            } else {
+                SelectionKey sk = addRead(ps.toSc);
+                sk.attach(ps);
+            }
         }
     }
 
@@ -33,24 +39,6 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
             toFrom = from;
             hRequest = hsr;
         }
-    }
-
-    @Override
-    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
-
-        while (!qAddRead.isEmpty()) {
-            SendData ps = qAddRead.poll();
-            if (ps != null) {
-                if (ps.hRequest.bbData.remaining() > 0) {
-                    SelectionKey sk = addWrite(ps.toSc);
-                    sk.attach(ps);
-                } else {
-                    SelectionKey sk = addRead(ps.toSc);
-                    sk.attach(ps);
-                }
-            }
-        }
-        return super.selectAction(qSelectedKey);
     }
 
     protected int iMaxHttpHeadLength = 2 * 1024;

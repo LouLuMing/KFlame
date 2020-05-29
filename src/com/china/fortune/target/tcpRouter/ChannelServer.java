@@ -121,6 +121,7 @@ public class ChannelServer extends NioRWAttach implements TargetInterface {
         if (rf.inPort > 0 && rf.channelPort > 0) {
             if (start(rf.inPort, rf.channelPort)) {
                 join();
+                stop();
                 return true;
             }
         }
@@ -131,6 +132,7 @@ public class ChannelServer extends NioRWAttach implements TargetInterface {
         ChannelServer cs = new ChannelServer();
         cs.start(8900, 8901);
         cs.join();
+        cs.stop();
     }
 
 }

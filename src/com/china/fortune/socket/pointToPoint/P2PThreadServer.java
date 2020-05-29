@@ -67,9 +67,9 @@ public abstract class P2PThreadServer extends P2PServer {
 		}
 	};
 	
-	public boolean start(int iPort, int iMaxThread) {
+	public boolean start(int iPort) {
 		if (super.start(iPort)) {
-			threadPool.start(1, iMaxThread);
+			threadPool.start();
 			return true;
 		} else {
 			return false;

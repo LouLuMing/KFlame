@@ -1,6 +1,7 @@
 package com.china.fortune.http.property;
 
 import com.china.fortune.file.FileHelper;
+import com.china.fortune.struct.FastHashMap;
 
 import java.util.HashMap;
 
@@ -11,10 +12,9 @@ public final class HttpProp {
 
     final static public String csDefaultContentType = "application/octet-stream";
 
-    static HashMap<String, String> mapContentType = new HashMap<String, String>(
-            128);
-    static HashMap<Integer, String> mapErrorCode = new HashMap<Integer, String>(
-            128);
+    static FastHashMap<String> mapContentType = new FastHashMap<>();
+
+    static String[] lsErrorCode = new String[1024];
 
     static {
         mapContentType.put("css", "text/css");
@@ -33,11 +33,14 @@ public final class HttpProp {
 
         mapContentType.put("pdf", "application/pdf");
 
-        mapErrorCode.put(200, "OK");
-        mapErrorCode.put(302, "Temporarily Moved");
-        mapErrorCode.put(403, "Forbidden");
-        mapErrorCode.put(404, "Not Found");
-        mapErrorCode.put(500, "Internal Server Error");
+        lsErrorCode[200] = "OK";
+        lsErrorCode[302] = "Temporarily Moved";
+        lsErrorCode[304] = "Not Modified";
+        lsErrorCode[403] = "Forbidden";
+        lsErrorCode[404] = "Not Found";
+        lsErrorCode[500] = "Internal Server Error";
+
+        mapContentType.initHitCache();
     }
 
     static public String getContentType(String sType) {
@@ -45,12 +48,13 @@ public final class HttpProp {
     }
 
     static public String getError(int err) {
-        String sError = mapErrorCode.get(err);
-        if (sError != null) {
-            return sError;
-        } else {
-            return "Unknown Error";
+        if (err >=0 && err < lsErrorCode.length) {
+            String sError = lsErrorCode[err];
+            if (sError != null) {
+                return sError;
+            }
         }
+        return "Unknown Error";
     }
 
     static public String getContentTypeByFile(String sFileName) {

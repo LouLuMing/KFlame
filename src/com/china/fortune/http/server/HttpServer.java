@@ -13,9 +13,6 @@ import com.china.fortune.socket.shortConnection.ShortConnectionServer;
 public abstract class HttpServer extends ShortConnectionServer {
 	protected abstract void service(HttpRequest hReq, HttpResponse hRes);
 
-	public boolean startAndBlock(int iPort, int iThread) {
-		return super.startAndBlock(iPort);
-	}
 	
 	@Override
 	protected void onRead(Socket sc) {

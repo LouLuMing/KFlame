@@ -236,6 +236,13 @@ public class HttpHeader {
 		return bBody;
 	}
 
+	public int getByteBodyLen() {
+		if (bBody != null) {
+			return bBody.length;
+		} else {
+			return 0;
+		}
+	}
 	public void setBodyNoHeader(byte[] bData) {
 		this.bBody = bData;
 	}
@@ -344,20 +351,6 @@ public class HttpHeader {
 		return iLen;
 	}
 
-	protected int getLength(ByteBuffer bb, int iStart, int iEnd) {
-		int iLen = 0;
-		for (int j = iStart; j <= iEnd; j++) {
-			byte b = bb.get(j);
-			if (b >= (byte) '0' && b <= (byte) '9') {
-				iLen *= 10;
-				iLen += (b - '0');
-			} else if (b == 0x0d) {
-				break;
-			}
-		}
-		return iLen;
-	}
-
 	protected int getLength(byte[] bData, int iStart, int iEnd) {
 		int iLen = 0;
 		for (int j = iStart; j <= iEnd; j++) {
@@ -384,7 +377,7 @@ public class HttpHeader {
 	}
 
 	protected boolean isChunked(byte[] bData, int iOff, int iEnd) {
-		for (int i = iOff; i < iEnd - 14; i++) {
+		for (int i = iOff; i < iEnd - 7; i++) {
 			if ((bData[i + 0] == 'c' || bData[i + 0] == 'C')
 					&& bData[i + 1] == 'h' && bData[i + 2] == 'u'
 					&& bData[i + 3] == 'n' && bData[i + 4] == 'k'
@@ -395,6 +388,28 @@ public class HttpHeader {
 		return false;
 	}
 
+	protected int findIfNoneMatch(ByteBuffer bb, int iOff, int iEnd) {
+		int iLen = -1;
+		for (int i = iOff; i < iEnd - 13; i++) {
+			if ((bb.get(i + 0) == 'I' || bb.get(i + 0) == 'i')
+					&& bb.get(i + 1) == 'f'
+					&& bb.get(i + 2) == '-'
+					&& (bb.get(i + 3) == 'N' || bb.get(i + 3) == 'n')
+					&& bb.get(i + 4) == 'o'
+					&& bb.get(i + 5) == 'n'
+					&& bb.get(i + 6) == 'e'
+					&& bb.get(i + 7) == '-'
+					&& (bb.get(i + 8) == 'M' || bb.get(i + 8) == 'm')
+					&& bb.get(i + 9) == 'a'
+					&& bb.get(i + 10) == 't'
+					&& bb.get(i + 11) == 'c'
+					&& bb.get(i + 12) == 'h') {
+				iLen = i + 13;
+			}
+		}
+		return iLen;
+	}
+
 	protected int getContentLength(ByteBuffer bb, int iOff, int iEnd) {
 		int iLen = 0;
 		for (int i = iOff; i < iEnd - 14; i++) {
@@ -402,7 +417,7 @@ public class HttpHeader {
 					&& bb.get(i + 3) == 't' && bb.get(i + 4) == 'e' && bb.get(i + 5) == 'n' && bb.get(i + 6) == 't'
 					&& bb.get(i + 7) == '-' && (bb.get(i + 8) == 'L' || bb.get(i + 8) == 'l') && bb.get(i + 9) == 'e'
 					&& bb.get(i + 10) == 'n' && bb.get(i + 11) == 'g' && bb.get(i + 12) == 't' && bb.get(i + 13) == 'h') {
-				iLen = getLength(bb, i+14, iEnd);
+				iLen = ByteBufferUtils.getLength(bb, i+14, iEnd);
 //				for (int j = i + 14; j <= iEnd; j++) {
 //					if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
 //						iLen *= 10;

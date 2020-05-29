@@ -49,31 +49,18 @@ public abstract class ShortConnectionServerAttach {
 		return rs;
 	}
 
-	public boolean startAndBlock(int iPort) {
-		int iCups = Runtime.getRuntime().availableProcessors();
-		return startAndBlock(iPort, iCups, iCups << 2 + 1);
-	}
-
-	public boolean startAndBlock(int iPort, int iMinThread, int iMaxThread) {
-		boolean rs = openServer(iPort);
-		if (rs) {
-			bRunning = true;
-			readThreaPool.start(iMinThread, iMaxThread);
-			acceptAction();
-		}
-		return rs;
+	public void startAndBlock(int iPort) {
+		start(iPort);
+		waitUntilStop();
+		closeSocket();
+		readThreaPool.waitToStop();
 	}
 
 	public boolean start(int iPort) {
-		int iCups = Runtime.getRuntime().availableProcessors();
-		return start(iPort, iCups, iCups << 2 + 1);
-	}
-
-	public boolean start(int iPort, int iMinThread, int iMaxThread) {
 		boolean rs = openServer(iPort);
 		if (rs) {
 			bRunning = true;
-			readThreaPool.start(iMinThread, iMaxThread);
+			readThreaPool.start();
 			startAcceptThread();
 		}
 		return rs;
@@ -92,6 +79,7 @@ public abstract class ShortConnectionServerAttach {
 			} catch (Exception e) {
 				Log.logClass(e.getMessage());
 			}
+			tAcceptAndRead = null;
 		}
 	}
 
@@ -113,21 +101,10 @@ public abstract class ShortConnectionServerAttach {
 		tAcceptAndRead.start();
 	}
 
-	private void waitToStopAcceptThread() {
-		if (tAcceptAndRead != null) {
-			try {
-				tAcceptAndRead.join();
-			} catch (Exception e) {
-				Log.logClass(e.getMessage());
-			}
-			tAcceptAndRead = null;
-		}
-	}
-
 	public void stop() {
 		bRunning = false;
 		closeSocket();
-		waitToStopAcceptThread();
+		waitUntilStop();
 		readThreaPool.waitToStop();
 	}
 

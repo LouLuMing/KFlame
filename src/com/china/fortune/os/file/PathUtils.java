@@ -10,6 +10,9 @@ import com.china.fortune.global.Log;
 public class PathUtils {
 	static public synchronized String getCurrentDataPath(boolean bSeparatorEndian) {
 		String sRootPath = System.getProperty("user.dir");
+		if (sRootPath.endsWith(".")) {
+			sRootPath = sRootPath.substring(0, sRootPath.length() - 1);
+		}
 		if (bSeparatorEndian) {
 			if (sRootPath.charAt(sRootPath.length() - 1) != File.separatorChar) {
 				sRootPath += File.separatorChar;
@@ -19,6 +22,7 @@ public class PathUtils {
 				sRootPath = sRootPath.substring(0, sRootPath.length() - 1);
 			}
 		}
+		Log.logClass(sRootPath);
 		return sRootPath;
 	}
 

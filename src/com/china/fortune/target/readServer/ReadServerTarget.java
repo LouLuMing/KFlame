@@ -14,7 +14,7 @@ public class ReadServerTarget  implements TargetInterface {
 		int iLocalPort = StringAction.toInteger(cfg.getChildNodeText("localport"));
 		int iThread = StringAction.toInteger(cfg.getChildNodeText("ithread"));
 		ReadServer obj = new ReadServer();
-		if (obj.openAndStart(iLocalPort, iThread)) {
+		if (obj.openAndStart(iLocalPort)) {
 			Log.log("ReadServerTarget init");
 			obj.join();
 			obj.stop();

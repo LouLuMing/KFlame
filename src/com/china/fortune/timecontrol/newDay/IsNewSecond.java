@@ -52,7 +52,8 @@ public class IsNewSecond {
 			}
 		};
 
-		threadPool.start(10, 10);
+		threadPool.setThread(10, 10);
+		threadPool.start();
 		while (true) {
 			ThreadUtils.sleep(1000);
 		}

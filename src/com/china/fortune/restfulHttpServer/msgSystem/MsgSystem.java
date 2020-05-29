@@ -4,24 +4,18 @@ import com.china.fortune.database.sql.InsertSql;
 import com.china.fortune.global.Log;
 import com.china.fortune.struct.EnConcurrentLinkedQueue;
 import com.china.fortune.thread.AutoIncreaseThreadPool;
+import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.timecontrol.timeout.TimeoutActionThreadSafe;
 
 import java.util.HashMap;
 
-public abstract class MsgSystem extends AutoIncreaseThreadPool {
+public abstract class MsgSystem extends AutoThreadPool {
 	protected EnConcurrentLinkedQueue<Object> lsObjs = new EnConcurrentLinkedQueue<Object>(18);
 	protected HashMap<Class<?>, MsgActionInterface> lsMsgAction = new HashMap<Class<?>, MsgActionInterface>();
 
 	abstract protected void onTimer(Object dbObj);
 
 	private TimeoutActionThreadSafe taObj = new TimeoutActionThreadSafe();
-
-	private class OnTimerAction implements MsgInterface {
-		@Override
-		public void doAction(Object dbObj) {
-			onTimer(dbObj);
-		}
-	}
 
 	public void setLoop(long iMilSecond) {
 		Log.logClass("Millisecond " + iMilSecond);
@@ -53,7 +47,10 @@ public abstract class MsgSystem extends AutoIncreaseThreadPool {
 		lsMsgAction.put(cls, mai);
 	}
 	@Override
-	protected void doAction(Object objForThread) {
+	protected boolean doAction(Object objForThread) {
+		if (taObj.isTimeoutAndReset()) {
+			onTimer(objForThread);
+		}
 		Object o = lsObjs.poll();
 		if (o != null) {
 			if (o instanceof MsgInterface) {
@@ -67,16 +64,10 @@ public abstract class MsgSystem extends AutoIncreaseThreadPool {
 					Log.logClassError("MsgActionInterface miss " + o.getClass().getSimpleName());
 				}
 			}
+			return true;
+		} else {
+			return false;
 		}
-	}
-
-	private OnTimerAction ota = new OnTimerAction();
-	@Override
-	protected boolean haveThingsToDo(Object obj) {
-		if (taObj.isTimeoutAndReset()) {
-			lsObjs.add(ota);
-		}
-		return !lsObjs.isEmpty();
 	}
 
 }

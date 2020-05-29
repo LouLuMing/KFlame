@@ -58,8 +58,9 @@ public class MySqlDbAction extends DbAction {
 
 	public ArrayList<String> selectAllTableName() {
 		String sDBName = showSelectDatabase();
-		String sSelect = "select table_name from information_schema.tables where table_schema='" + sDBName
-				+ "' and table_type='base table';";
+//		String sSelect = "select table_name from information_schema.tables where table_schema='" + sDBName
+//				+ "' and table_type='base table';";
+		String sSelect = "select table_name from information_schema.tables where table_schema='" + sDBName + "';";
 		return this.selectStringOneColumn(sSelect);
 	}
 

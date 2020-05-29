@@ -11,6 +11,7 @@ public class Host {
 
     public String sPath;
     public String sServer;
+    public boolean isCache = false;
     public boolean isGZip = false;
     public int iPort;
     public int iError;

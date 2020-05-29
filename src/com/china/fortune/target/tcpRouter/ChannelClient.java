@@ -39,7 +39,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
+    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
         while (!qAddRead.isEmpty()) {
             SocketChannelAndByteBuffer scp = qAddRead.poll();
             if (scp != null) {
@@ -49,7 +49,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
                 }
             }
         }
-        return super.selectAction(qSelectedKey);
+        super.selectAction(qSelectedKey);
     }
 
     private SocketChannelAndByteBuffer connectServer(int port) {
@@ -147,6 +147,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
             outPort = rf.outPort;
             if (start(rf.channelServer, rf.channelPort)) {
                 join();
+                stop();
                 return true;
             }
         }
@@ -165,6 +166,7 @@ public class ChannelClient extends NioRWAttach implements TargetInterface {
 //        String sRecv = HttpSendAndRecv.doGet("http://121.40.112.2:8808/index.html");
 //        Log.log(sRecv);
         cs.join();
+        cs.stop();
     }
 
 }

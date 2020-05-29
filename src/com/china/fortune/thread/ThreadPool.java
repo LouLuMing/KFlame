@@ -27,12 +27,6 @@ public abstract class ThreadPool {
 		}
 	}
 
-	public void start(int iMin, int iMax) {
-		iMinThreads = iMin;
-		iMaxThreads = iMax;
-		start();
-	}
-
 	public void setAllStop() {
 		bRunning = false;
 	}

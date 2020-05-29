@@ -45,7 +45,18 @@ public class InsertMultiSql {
 			sSqlHead.append(sTable);
 			sSqlHead.append(" (");
 			for (String sName : lsFields) {
+				boolean isKey = false;
+				if (sName.compareToIgnoreCase("key") == 0
+				|| sName.compareToIgnoreCase("value") == 0) {
+					isKey = true;
+				}
+				if (isKey) {
+					sSqlHead.append('`');
+				}
 				sSqlHead.append(sName);
+				if (isKey) {
+					sSqlHead.append('`');
+				}
 				sSqlHead.append(',');
 			}
 			sSqlHead.setLength(sSqlHead.length() - 1);
@@ -64,7 +75,7 @@ public class InsertMultiSql {
 					sSqlHead.append(sValue);
 					sSqlHead.append("\',");
 				} else {
-					sSqlHead.append(sValue);
+					sSqlHead.append("null");
 					sSqlHead.append(",");
 				}
 			}

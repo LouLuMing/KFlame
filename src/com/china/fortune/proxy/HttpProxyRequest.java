@@ -6,6 +6,9 @@ import com.china.fortune.proxy.host.HostList;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -25,24 +28,44 @@ public class HttpProxyRequest extends HttpServerRequest {
 //    }
 
     private FileChannel fileChannel = null;
+    private FileInputStream fileStream = null;
     private long iFilePosition;
     private long iFileSize;
-    public boolean openFileChannel(String fileName) {
-        Path file = Paths.get(fileName);
-        if (Files.exists(file)) {
-            try {
-                fileChannel = (FileChannel) (Files.newByteChannel(file));
+    public boolean openFileChannel(File file) {
+        try {
+            fileStream = new FileInputStream(file);
+            if (fileStream != null) {
+                fileChannel = fileStream.getChannel();
                 iFilePosition = 0;
                 iFileSize = fileChannel.size();
                 return true;
-            } catch (Exception e) {
-                Log.logException(e);
             }
+        } catch (Exception e) {
+            Log.logException(e);
+            closeFileChannel();
         }
         return false;
+//        Path file = Paths.get(f.getAbsolutePath());
+//        if (Files.exists(file)) {
+//            try {
+//                fileChannel = (FileChannel) (Files.newByteChannel(file));
+//                iFilePosition = 0;
+//                iFileSize = fileChannel.size();
+//                return true;
+//            } catch (Exception e) {
+//                Log.logException(e);
+//            }
+//        }
+//        return false;
     }
 
     public void closeFileChannel() {
+        if (fileStream != null) {
+            try {
+                fileStream.close();
+            } catch (Exception e) {}
+            fileStream = null;
+        }
         if (fileChannel != null) {
             try {
                 fileChannel.close();
@@ -82,7 +105,7 @@ public class HttpProxyRequest extends HttpServerRequest {
         if (bbData.remaining() == 0) {
             return transferFile(key);
         } else {
-            if (SocketChannelHelper.write(sc, bbData) >= 0) {
+            if (SocketChannelHelper.write(sc, bbData) > 0) {
                 if (bbData.remaining() == 0) {
                     return transferFile(key);
                 } else {

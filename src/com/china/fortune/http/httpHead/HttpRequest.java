@@ -162,6 +162,24 @@ public class HttpRequest extends HttpHeader {
         return sMethod;
     }
 
+    public boolean parseHeader(ByteBuffer bb) {
+        boolean rs = false;
+        int iMethod = ByteBufferUtils.indexOf(bb, 0, bb.position()+1, HttpHeader.fbCRLF);
+        if (iMethod > 0) {
+            while (true) {
+                int iOff = iMethod + HttpHeader.fbCRLF.length;
+                iMethod = ByteBufferUtils.indexOf(bb, iOff, bb.position()+1, HttpHeader.fbCRLF);
+                if (iMethod > iOff) {
+                    parseHeader(bb, iOff, iMethod - 1);
+                } else {
+                    break;
+                }
+            }
+            rs = true;
+        }
+        return rs;
+    }
+
     public boolean parseRequestAndHeader(ByteBuffer bb) {
         boolean rs = false;
         int iMethod = ByteBufferUtils.indexOf(bb, 0, bb.position()+1, HttpHeader.fbCRLF);
@@ -198,6 +216,24 @@ public class HttpRequest extends HttpHeader {
                 }
                 rs = true;
             }
+        }
+        return rs;
+    }
+
+    public boolean parseHeader(byte[] bData) {
+        boolean rs = false;
+        int iMethod = ByteParser.indexOf(bData, 0, HttpHeader.fbCRLF);
+        if (iMethod > 0) {
+            while (true) {
+                int iOff = iMethod + HttpHeader.fbCRLF.length;
+                iMethod = ByteParser.indexOf(bData, iOff, HttpHeader.fbCRLF);
+                if (iMethod > iOff) {
+                    parseHeader(bData, iOff, iMethod - 1);
+                } else {
+                    break;
+                }
+            }
+            rs = true;
         }
         return rs;
     }

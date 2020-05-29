@@ -3,7 +3,7 @@ package com.china.fortune.socket.pointToPoint;
 import com.china.fortune.common.ByteAction;
 import com.china.fortune.global.Log;
 import com.china.fortune.socket.SocketChannelHelper;
-import com.china.fortune.thread.AutoIncreaseThreadPool;
+import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.thread.ThreadUtils;
 
 import java.net.SocketTimeoutException;
@@ -125,20 +125,18 @@ public abstract class P2PSendRecv {
         }
     }
 
-    private class ReadThreads extends AutoIncreaseThreadPool {
+    private class ReadThreads extends AutoThreadPool {
         @Override
-        protected void doAction(Object objForThread) {
+        protected boolean doAction(Object objForThread) {
             Integer port = qRetry.poll();
             if (port != null) {
                 if (!onRead(port, null)) {
                     qRetry.add(port);
                 }
+                return true;
+            } else {
+                return false;
             }
-        }
-
-        @Override
-        protected boolean haveThingsToDo(Object objForThread) {
-            return !qRetry.isEmpty() ;
         }
 
         @Override

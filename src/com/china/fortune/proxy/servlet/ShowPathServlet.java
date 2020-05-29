@@ -8,13 +8,21 @@ import com.china.fortune.restfulHttpServer.ResultJson;
 
 public class ShowPathServlet extends RestfulStringServlet {
     private ProxyManager actionManager;
+    private String[] lsKey = { "resource" };
     public ShowPathServlet(ProxyManager am) {
         actionManager = am;
+        ksUnKey.append(lsKey);
     }
+
     @Override
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
         JSONObject data = new JSONObject();
-        data.put("list", actionManager.toJSONArray());
+        String resource = lsValues[0];
+        if (resource != null) {
+            data.put("list", actionManager.toJSONArray(resource));
+        } else {
+            data.put("list", actionManager.toJSONArray());
+        }
         ResultJson.fillOK(json, data);
         return RunStatus.isOK;
     }

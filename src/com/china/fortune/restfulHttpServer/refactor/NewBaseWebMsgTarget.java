@@ -5,6 +5,7 @@ import com.china.fortune.global.Log;
 import com.china.fortune.restfulHttpServer.msgSystem.MsgActionInterface;
 import com.china.fortune.restfulHttpServer.msgSystem.MsgInterface;
 import com.china.fortune.thread.AutoIncreaseThreadPool;
+import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.timecontrol.timeout.TimeoutActionThreadSafe;
 
 import java.util.HashMap;
@@ -27,37 +28,35 @@ public abstract class NewBaseWebMsgTarget extends NewBaseWebTarget {
         taObj.setWaitTime(iSecond * 1000);
     }
 
-    protected AutoIncreaseThreadPool msgServer = new AutoIncreaseThreadPool() {
+    protected AutoThreadPool msgServer = new AutoThreadPool() {
         @Override
         protected Object onCreate() {
             return mySqlManager.get();
         }
 
         @Override
-        protected void doAction(Object obj) {
-            Object o = lsMessage.poll();
-            if (o != null) {
-                if (o instanceof MsgInterface) {
-                    MsgInterface mi = (MsgInterface)o;
-                    mi.doAction(obj);
-                } else {
-                    MsgActionInterface mai = lsMsgAction.get(o.getClass());
-                    if (mai != null) {
-                        mai.doAction(o, obj);
+        protected boolean doAction(Object obj) {
+            if (taObj.isTimeoutAndReset()) {
+                ota.doAction(obj);
+                return true;
+            } else {
+                Object o = lsMessage.poll();
+                if (o != null) {
+                    if (o instanceof MsgInterface) {
+                        MsgInterface mi = (MsgInterface) o;
+                        mi.doAction(obj);
                     } else {
-                        Log.logClassError("MsgActionInterface " + o.getClass().getSimpleName());
+                        MsgActionInterface mai = lsMsgAction.get(o.getClass());
+                        if (mai != null) {
+                            mai.doAction(o, obj);
+                        } else {
+                            Log.logClassError("MsgActionInterface " + o.getClass().getSimpleName());
+                        }
                     }
+                    return true;
                 }
             }
-        }
-
-        @Override
-        protected boolean haveThingsToDo(Object obj) {
-            if (taObj.isTimeoutAndReset()) {
-                return lsMessage.add(ota);
-            } else {
-                return !lsMessage.isEmpty();
-            }
+            return false;
         }
 
         @Override

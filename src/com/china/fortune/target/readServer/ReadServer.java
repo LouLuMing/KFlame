@@ -47,6 +47,6 @@ public class ReadServer extends NioReadNoAttach implements TargetInterface {
 
 	public static void main(String[] args) {
 		ReadServer rs = new ReadServer();
-		rs.startAndBlock(9900, 1);
+		rs.startAndBlock(9900);
 	}
 }

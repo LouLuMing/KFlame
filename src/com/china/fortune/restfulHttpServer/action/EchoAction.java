@@ -4,23 +4,12 @@ import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
-import com.china.fortune.thread.ThreadUtils;
 
-public class ShowHttpAction implements ServletInterface {
+public class EchoAction implements ServletInterface {
 
 	@Override
 	public RunStatus doAction(HttpServerRequest hReq, HttpResponse hRes, Object objForThread) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(hReq.getRmoteStringIP());
-		sb.append('\n');
-		sb.append(hReq.toString());
-		String sRecvBody = hReq.getBody();
-		if (sRecvBody != null) {
-			sb.append(sRecvBody);
-		}
-		Log.logClass(hReq.getResource());
-		hRes.setBody(sb.toString(), "text/plain");
+		hRes.setBody("hello world", "text/plain");
 		return RunStatus.isOK;
 	}
 

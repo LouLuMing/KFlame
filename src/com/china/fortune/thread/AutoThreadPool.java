@@ -1,13 +1,14 @@
 package com.china.fortune.thread;
 
 import com.china.fortune.global.ConstData;
+import com.china.fortune.global.Log;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AutoThreadPool {
 	protected AtomicInteger iTotalThreadCount = new AtomicInteger(0);
-	protected int iMinThreads = Runtime.getRuntime().availableProcessors();
-	protected int iMaxThreads = Runtime.getRuntime().availableProcessors() * 2 + 1;
+	protected int iMinThread = 1;
+	protected int iMaxThread = Runtime.getRuntime().availableProcessors() * 2 + 1;
 
 	protected int iThreadSleep = ConstData.iThreadSleepTime;
 
@@ -26,25 +27,25 @@ public abstract class AutoThreadPool {
 	protected long lFirstThreadId = 0;
 	public void start() {
 		bRunning = true;
-		if (iMinThreads > iMaxThreads) {
-			iMinThreads = iMaxThreads;
+		if (iMinThread > iMaxThread) {
+			iMinThread = iMaxThread;
 		}
 		tFirst = addNewThread();
 		lFirstThreadId = tFirst.getId();
-		for (int i = 1; i < iMinThreads; i++) {
+		for (int i = 1; i < iMinThread; i++) {
 			addNewThread();
 		}
+		Log.logClass("minThread:" + iMinThread + " maxThread:" + iMaxThread);
 	}
 
 	public void start(int iMin) {
-		iMinThreads = iMin;
+		iMinThread = iMin;
 		start();
 	}
-	
-	public void start(int iMin, int iMax) {
-		iMinThreads = iMin;
-		iMaxThreads = iMax;
-		start();
+
+	public void setThread(int iMin, int iMax) {
+		iMinThread = iMin;
+		iMaxThread = iMax;
 	}
 
 	public void setAllStop() {
@@ -94,6 +95,7 @@ public abstract class AutoThreadPool {
 	protected int iLimitQuitRequest = 50;
 	protected int iLimitContinuousWork = 3;
 
+	private boolean hasFreeThread = true;
 	protected void doWorkInThread(Object obj) {
 		boolean isNeedDecrement = true;
 		int iQuitRequest = 0;
@@ -108,21 +110,26 @@ public abstract class AutoThreadPool {
 //				Log.logException(e);
 //			}
 			if (doAction(obj)) {
-				iQuitRequest = 0;
-				if (++iContinuouslyWork > iLimitContinuousWork) {
-					if (iTotalThreadCount.get() < iMaxThreads) {
-						iTotalThreadCount.getAndIncrement();
-						addNewThread();
+				if (hasFreeThread) {
+					iQuitRequest = 0;
+					if (++iContinuouslyWork > iLimitContinuousWork) {
+						if (iTotalThreadCount.get() < iMaxThread) {
+							iTotalThreadCount.getAndIncrement();
+							addNewThread();
+						} else {
+							hasFreeThread = false;
+						}
+						iContinuouslyWork = 0;
 					}
-					iContinuouslyWork = 0;
 				}
 			} else {
 				iContinuouslyWork = 0;
 				if (lFirstThreadId != lThreadId) {
 					if (++iQuitRequest > iLimitQuitRequest) {
-						if (iTotalThreadCount.get() > iMinThreads) {
-							if (iTotalThreadCount.getAndDecrement() > iMinThreads) {
+						if (iTotalThreadCount.get() > iMinThread) {
+							if (iTotalThreadCount.getAndDecrement() > iMinThread) {
 								isNeedDecrement = false;
+								hasFreeThread = true;
 								break;
 							} else {
 								iTotalThreadCount.getAndIncrement();

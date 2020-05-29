@@ -6,30 +6,15 @@ import com.china.fortune.processflow.ProcessAction;
 import com.china.fortune.reflex.ClassXml;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioAcceptDelayAttach;
-import com.china.fortune.struct.FastList;
 import com.china.fortune.xml.XmlNode;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
     private String outServer = "127.0.0.1";
     private int outPort = 9999;
-
-    @Override
-    protected int selectAction(FastList<SelectionKey> qSelectedKey) {
-
-        while (!qAddRead.isEmpty()) {
-            PairSocket ps = qAddRead.poll();
-            if (ps != null) {
-                SelectionKey sk = registerRead(ps.to);
-                sk.attach(ps.from);
-            }
-        }
-        return super.selectAction(qSelectedKey);
-    }
 
     public boolean start(int iPort, String remoteIP, int remotePort) {
         boolean rs = false;
@@ -38,9 +23,10 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
         Log.logClass("inPort:" + iPort + " outServer:" + remoteIP + " outPort:" + remotePort);
         if (openAndStart(iPort)) {
             join();
+            stop();
             rs = true;
         } else {
-            super.stop();
+            stop();
         }
         return rs;
     }
@@ -127,19 +113,11 @@ public class TcpRouter extends NioAcceptDelayAttach implements TargetInterface {
         return to;
     }
 
-    private class PairSocket {
-        SocketChannel from;
-        SocketChannel to;
-    }
 
-    private void addPairSocketToRead(SocketChannel s1, SocketChannel s2) {
-        PairSocket ps = new PairSocket();
-        ps.from = s1;
-        ps.to = s2;
-        qAddRead.add(ps);
+    private void addPairSocketToRead(SocketChannel from, SocketChannel to) {
+        SelectionKey sk = registerRead(to);
+        sk.attach(from);
     }
-
-    private ConcurrentLinkedQueue<PairSocket> qAddRead = new ConcurrentLinkedQueue<PairSocket>();
 
     public class RouterConfig {
         public int inPort;

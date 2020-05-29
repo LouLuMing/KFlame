@@ -122,6 +122,22 @@ public class ByteBufferUtils {
 		return sb.toString();
 	}
 
+	static public int getLength(ByteBuffer bb, int iStart, int iEnd) {
+		int iLen = 0;
+		for (int j = iStart; j <= iEnd; j++) {
+			byte b = bb.get(j);
+			if (b >= (byte) '0' && b <= (byte) '9') {
+				iLen *= 10;
+				iLen += (b - '0');
+//			} else if (b == 0x0d) {
+//				break;
+			} else {
+				break;
+			}
+		}
+		return iLen;
+	}
+
 	public static void main(String[] args) {
 		ByteBuffer bb = ByteBuffer.allocateDirect(1000);
 		bb.put("hello".getBytes());
