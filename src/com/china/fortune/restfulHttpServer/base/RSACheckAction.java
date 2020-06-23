@@ -18,7 +18,7 @@ public class RSACheckAction extends RestfulStringServlet {
 
     @Override
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
-        String sDecrypt = RSAAction.decrypt(lsValues[1], InterfaceRSAKey.RSA_Data_Private);
+        String sDecrypt = RSAAction.decryptByPrivateKey(lsValues[1], InterfaceRSAKey.RSA_Data_Private);
         if (StringAction.compareTo(sDecrypt, lsValues[0]) == 0) {
             int clientIP;
             if (lsValues[0].indexOf('.') > 0) {

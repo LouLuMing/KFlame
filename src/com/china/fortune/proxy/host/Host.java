@@ -5,15 +5,16 @@ import com.china.fortune.os.file.PathUtils;
 import com.china.fortune.string.StringAction;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 
 public class Host {
     static private String sDefFile = File.separatorChar + "index.html";
 
     public String sPath;
-    public String sServer;
+    public InetSocketAddress isaRemote;
+
     public boolean isCache = false;
     public boolean isGZip = false;
-    public int iPort;
     public int iError;
 
     public void setResult(boolean b) {
@@ -46,9 +47,10 @@ public class Host {
 
     public void parseURL(String sURL) {
         if (sURL != null) {
-            iPort = 80;
             int iIndex = sURL.indexOf("://");
             if (iIndex > 0) {
+                int iPort = 80;
+                String sServer;
                 String sTmp = sURL.substring(iIndex+3);
                 iIndex = sTmp.indexOf('/');
                 if (iIndex > 0) {
@@ -62,6 +64,7 @@ public class Host {
                 } else {
                     sServer = sTmp;
                 }
+                isaRemote = new InetSocketAddress(sServer, iPort);
             } else {
                 Log.logError(sURL);
             }
@@ -76,6 +79,7 @@ public class Host {
         } else {
             sPath = PathUtils.getFullPath(path);
             sPath = PathUtils.delSeparator(path);
+            isaRemote = null;
         }
         iError = 0;
     }

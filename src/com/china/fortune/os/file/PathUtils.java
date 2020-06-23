@@ -44,11 +44,10 @@ public class PathUtils {
 	}
 
 	static public String getParentPath(String sfullPath, boolean bSeparatorEndian) {
-		if (sfullPath.length() > 1) {
-			char[] pChar = sfullPath.toCharArray();
-			for (int i = pChar.length - 2; i > 0; i--) {
+		if (sfullPath.length() > 2) {
+			for (int i = sfullPath.length() - 2; i > 0; i--) {
 				// if (pChar[i] == File.separatorChar) {
-				if (pChar[i] == '/' || pChar[i] == '\\') {
+				if (sfullPath.charAt(i) == '/' || sfullPath.charAt(i) == '\\') {
 					if (bSeparatorEndian) {
 						sfullPath = sfullPath.substring(0, i + 1);
 					} else {
@@ -230,6 +229,16 @@ public class PathUtils {
 		return lsFileName;
 	}
 
+	static public void copyFiles(String sSrcPath, String sDesPath) {
+		ArrayList<String> lsSrcileName = new ArrayList<String>();
+		PathUtils.getAllFile(sSrcPath, lsSrcileName);
+		for (String sSrcFile : lsSrcileName) {
+			String sDesFile = sSrcFile.replace(sSrcPath, sDesPath);
+			create(getParentPath(sDesFile, false));
+			FileHelper.copy(sSrcFile, sDesFile);
+		}
+	}
+
     static public void syncFiles(String sSrcPath, String sDesPath) {
         ArrayList<String> lsDesFileName = new ArrayList<String>();
         PathUtils.getAllFile(sDesPath, lsDesFileName);
@@ -239,6 +248,7 @@ public class PathUtils {
             File fSrc = new File(sSrcFile);
             if (fDes.exists() && fSrc.exists()) {
 				if (fDes.lastModified() < fSrc.lastModified()) {
+					create(getParentPath(sDesFile, false));
 					FileHelper.copy(sSrcFile, sDesFile);
 				}
 			}

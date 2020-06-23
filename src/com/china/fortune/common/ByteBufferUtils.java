@@ -104,15 +104,18 @@ public class ByteBufferUtils {
 		return iIndex;
 	}
 
-	static public byte[] toByte(ByteBuffer bb, int iOff, int iLen) {
-		byte[] bData = new byte[iLen - iOff];
+	static public byte[] toByte(ByteBuffer bb, int iStart, int iEnd) {
+		byte[] bData = new byte[iEnd - iStart];
 		int j = 0;
-		for (int i = iOff; i < iLen; i++) {
+		for (int i = iStart; i < iEnd; i++) {
 			bData[j++] = bb.get(i);
 		}
 		return bData;
 	}
 
+	static public String toString(ByteBuffer bb, int iStart, int iEnd) {
+		return new String(toByte(bb, iStart, iEnd));
+	}
 	static public String toHexString(ByteBuffer bb, int iOff, int iCount) {
 		StringBuilder sb = new StringBuilder(iCount * 2 + 1);
 		for (int i = iOff; i < iOff + iCount; i++) {
@@ -138,15 +141,41 @@ public class ByteBufferUtils {
 		return iLen;
 	}
 
+	static public byte[] toByte(ByteBuffer bbData) {
+		int iLen = bbData.limit();
+		byte[] bData = new byte[iLen];
+		bbData.get(bData);
+		bbData.position(0);
+		return bData;
+	}
+
+	public static ByteBuffer byteToByteBuffer(byte[] bData) {
+		if (bData != null) {
+			ByteBuffer bb = ByteBuffer.wrap(bData);
+			Log.logClass(bb.position() + " " + bb.limit());
+			return bb;
+		} else {
+			return null;
+		}
+	}
 	public static void main(String[] args) {
-		ByteBuffer bb = ByteBuffer.allocateDirect(1000);
+		ByteBuffer bb = ByteBuffer.allocate(1000);
 		bb.put("hello".getBytes());
-
+		bb.flip();
 		Log.logClass(bb.position() + ":" + bb.limit());
-		ByteBuffer cc = alone(bb);
+		bb.position(3);
+		Log.logClass(bb.position() + ":" + bb.limit());
+		bb.compact();
+		Log.logClass(bb.position() + ":" + bb.limit());
+		bb.flip();
+		byte[] bData = toByte(bb);
+		Log.log(new String(bData));
+//		Log.logClass(bb.position() + ":" + bb.limit());
+//		ByteBuffer cc = alone(bb);
+//
+//		Log.logClass(cc.position() + ":" + cc.limit());
+//		Log.log(new String(cc.array()));
 
-		Log.logClass(cc.position() + ":" + cc.limit());
-		Log.log(new String(cc.array()));
 	}
 
 

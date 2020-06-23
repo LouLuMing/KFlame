@@ -98,7 +98,7 @@ public class HttpRequest extends HttpHeader {
     final static String csHttpsHead = "https://";
     protected boolean bHttp = true;
 
-    public boolean isHttp() {
+    public boolean isbHttp() {
         return bHttp;
     }
 

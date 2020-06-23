@@ -2,6 +2,7 @@ package com.china.fortune.socket.selectorManager;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.socket.bk.NioRWAttach;
 import com.china.fortune.struct.FastList;
 
 import java.nio.channels.SelectionKey;
@@ -15,6 +16,22 @@ import java.util.Set;
 public abstract class NioAcceptDelayAttach extends NioRWAttach {
 	protected abstract Object onAccept(SocketChannel sc, Object objForThread);
 	protected abstract boolean onRead(SocketChannel sc, Object objForClient, Object objForThread);
+
+	protected void registerDelaySocket(FastList<SelectionKey> qSelectedKey, SocketChannel sc) {
+		int iQueue = emptySocketController.getQueueIndex();
+		if (iQueue > -1) {
+			SelectionKey sk = register(sc, 0);
+			if (sk != null) {
+				emptySocketController.add(sk, iQueue);
+				qSelectedKey.add(sk);
+			} else {
+				SocketChannelHelper.close(sc);
+			}
+		} else {
+			SocketChannelHelper.close(sc);
+		}
+	}
+
 	@Override
 	synchronized protected void selectAction(FastList<SelectionKey> qSelectedKey) {
 		int iSel;
@@ -36,10 +53,7 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 						} else if (key.isAcceptable()) {
 							SocketChannel sc = accept(key);
 							if (sc != null) {
-								SelectionKey skAc = acceptSocket(sc);
-								if (skAc != null) {
-									qSelectedKey.add(skAc);
-								}
+								registerDelaySocket(qSelectedKey, sc);
 							}
 						}
 					} else {
@@ -49,23 +63,6 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 				selectedKeys.clear();
 			}
 		}
-	}
-
-	@Override
-	protected SelectionKey acceptSocket(SocketChannel sc) {
-		if (allowAccept(sc)) {
-			int iQueue = emptySocketController.getQueueIndex();
-			if (iQueue > -1) {
-				SelectionKey sk = addNull(sc);
-				emptySocketController.add(sk, iQueue);
-				return sk;
-			} else {
-				SocketChannelHelper.close(sc);
-			}
-		} else {
-			SocketChannelHelper.close(sc);
-		}
-		return null;
 	}
 
 	@Override
@@ -92,13 +89,12 @@ public abstract class NioAcceptDelayAttach extends NioRWAttach {
 
 	@Override
 	protected NioSocketActionType onRead(SelectionKey key, Object objForThread) {
-		return NioSocketActionType.OP_READ;
+		return NioSocketActionType.NSA_READ;
 	}
 	
 	@Override
 	protected NioSocketActionType onWrite(SelectionKey key, Object objForThread) {
-		return NioSocketActionType.OP_READ;
+		return NioSocketActionType.NSA_READ;
 	}
-
 
 }

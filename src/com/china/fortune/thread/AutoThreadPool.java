@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AutoThreadPool {
 	protected AtomicInteger iTotalThreadCount = new AtomicInteger(0);
 	protected int iMinThread = 1;
-	protected int iMaxThread = Runtime.getRuntime().availableProcessors() * 2 + 1;
+	protected int iMaxThread = Runtime.getRuntime().availableProcessors();
 
 	protected int iThreadSleep = ConstData.iThreadSleepTime;
 

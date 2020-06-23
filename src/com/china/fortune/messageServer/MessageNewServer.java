@@ -2,14 +2,14 @@ package com.china.fortune.messageServer;
 
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.intHead.IntBEHeadByteBuffer;
-import com.china.fortune.socket.selectorManager.NioRWAttach;
+import com.china.fortune.socket.selectorManager.NioMod;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 import com.china.fortune.string.StringAction;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-public abstract class MessageNewServer extends NioRWAttach {
+public abstract class MessageNewServer extends NioMod {
 	final private String sCharset = "utf-8";
 	static final public int iClientMapSize = 1024 * 64;
 	protected ClientController ccChild = new ClientController(iClientMapSize);
@@ -96,9 +96,9 @@ public abstract class MessageNewServer extends NioRWAttach {
 			}
 		}
 		if (rs) {
-			return NioSocketActionType.OP_READ;
+			return NioSocketActionType.NSA_READ;
 		} else {
-			return NioSocketActionType.OP_CLOSE;
+			return NioSocketActionType.NSA_CLOSE;
 		}
 	}
 

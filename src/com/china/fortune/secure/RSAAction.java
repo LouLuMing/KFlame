@@ -23,7 +23,7 @@ import javax.crypto.Cipher;
 import com.china.fortune.global.Log;
 
 public class RSAAction {
-	static private PublicKey getPublicKeyFromX509(String algorithm, String bysKey)
+	static public PublicKey getPublicKeyFromX509(String algorithm, String bysKey)
 			throws NoSuchAlgorithmException, Exception {
 		byte[] decodedKey = Base64.getDecoder().decode(bysKey);
 		X509EncodedKeySpec x509 = new X509EncodedKeySpec(decodedKey);
@@ -32,7 +32,7 @@ public class RSAAction {
 		return keyFactory.generatePublic(x509);
 	}
 	
-	static private PrivateKey getPrivateKeyFromPKCS8(String algorithm, String privateKey)
+	static public PrivateKey getPrivateKeyFromPKCS8(String algorithm, String privateKey)
 			throws NoSuchAlgorithmException, Exception {
 		PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey));
 		KeyFactory keyf = KeyFactory.getInstance(algorithm);
@@ -112,7 +112,7 @@ public class RSAAction {
 		return sEncode;
 	}
 
-	static public String encrypt(String sContent, String sKey) {
+	static public String encryptByPublicKey(String sContent, String sKey) {
 		String sEncode = null;
 		try {
 			sEncode = encrypt(sContent, getPublicKeyFromX509("RSA", sKey));
@@ -136,7 +136,7 @@ public class RSAAction {
 		return sEncode;
 	}
 
-	static public String decrypt(String sContent, String privateKey) {
+	static public String decryptByPrivateKey(String sContent, String privateKey) {
 		String sEncode = null;
 		try {
 			sEncode = decrypt(sContent, getPrivateKeyFromPKCS8("RSA", privateKey));

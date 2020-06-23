@@ -1,5 +1,0 @@
-
-<target name="ReadServerTarget" class="${package}.readServer.ReadServerTarget">
-	<localport>20002</localport>
-	<ithread>1</ithread>
-</target>

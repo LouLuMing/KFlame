@@ -2,25 +2,22 @@ package com.china.fortune.proxy;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.http.server.HttpServerRequest;
+import com.china.fortune.proxy.host.Host;
 import com.china.fortune.proxy.host.HostList;
 import com.china.fortune.socket.SocketChannelHelper;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class HttpProxyRequest extends HttpServerRequest {
     public SelectionKey skClient;
     public SelectionKey skChannel;
-    public HostList pl;
-
+    public HostList hostList;
+    public Host host;
 //    public boolean noChannel = true;
 //    public void clear() {
 //        super.clear();
@@ -45,18 +42,6 @@ public class HttpProxyRequest extends HttpServerRequest {
             closeFileChannel();
         }
         return false;
-//        Path file = Paths.get(f.getAbsolutePath());
-//        if (Files.exists(file)) {
-//            try {
-//                fileChannel = (FileChannel) (Files.newByteChannel(file));
-//                iFilePosition = 0;
-//                iFileSize = fileChannel.size();
-//                return true;
-//            } catch (Exception e) {
-//                Log.logException(e);
-//            }
-//        }
-//        return false;
     }
 
     public void closeFileChannel() {
@@ -86,21 +71,20 @@ public class HttpProxyRequest extends HttpServerRequest {
                 if (iFilePosition >= iFileSize) {
                     reset();
                     closeFileChannel();
-                    return NioSocketActionType.OP_READ;
+                    return NioSocketActionType.NSA_READ;
                 } else {
-                    return NioSocketActionType.OP_WRITE;
+                    return NioSocketActionType.NSA_WRITE;
                 }
             } else {
-                return NioSocketActionType.OP_CLOSE;
+                return NioSocketActionType.NSA_CLOSE;
             }
         } else {
             reset();
-            return NioSocketActionType.OP_READ;
+            return NioSocketActionType.NSA_READ;
         }
     }
 
-    @Override
-    public NioSocketActionType write(SelectionKey key) {
+    public NioSocketActionType writeAndTransferFile(SelectionKey key) {
         SocketChannel sc = (SocketChannel) key.channel();
         if (bbData.remaining() == 0) {
             return transferFile(key);
@@ -109,11 +93,30 @@ public class HttpProxyRequest extends HttpServerRequest {
                 if (bbData.remaining() == 0) {
                     return transferFile(key);
                 } else {
-                    return NioSocketActionType.OP_WRITE;
+                    return NioSocketActionType.NSA_WRITE;
                 }
             } else {
-                return NioSocketActionType.OP_CLOSE;
+                return NioSocketActionType.NSA_CLOSE;
             }
         }
+    }
+
+    public NioSocketActionType channelData(SocketChannel sc) {
+        bbData.clear();
+        if (SocketChannelHelper.read(sc, bbData) > 0) {
+            bbData.flip();
+            SocketChannel scTo = (SocketChannel) skClient.channel();
+            if (SocketChannelHelper.write(scTo, bbData) >= 0) {
+                if (bbData.remaining() == 0) {
+                    reset();
+                    skClient.interestOps(SelectionKey.OP_READ);
+                    skChannel.interestOps(SelectionKey.OP_READ);
+                } else {
+                    skClient.interestOps(SelectionKey.OP_WRITE);
+                }
+                return NioSocketActionType.NSA_NULL;
+            }
+        }
+        return NioSocketActionType.NSA_CLOSE;
     }
 }

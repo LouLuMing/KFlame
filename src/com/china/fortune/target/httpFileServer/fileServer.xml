@@ -1,7 +1,0 @@
-<target name="FileServerTarget" class="${package}.httpFileServer.FileServer">
-	<localport>10000</localport>
-	<resources>
-		<resource folder="/home/yiqi/zjrc/visitor-api">/visitor-wechat</resource>
-		<resource folder="/home/yiqi/zjrc/visitor-wechat/dist">/</resource>
-	</resources>
-</target>

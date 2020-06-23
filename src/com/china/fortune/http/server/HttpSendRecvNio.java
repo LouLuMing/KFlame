@@ -1,9 +1,8 @@
 package com.china.fortune.http.server;
 
 import com.china.fortune.socket.SocketChannelHelper;
-import com.china.fortune.socket.selectorManager.NioRWAttach;
+import com.china.fortune.socket.bk.NioRWAttach;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.struct.FastList;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -15,11 +14,9 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
         if (SocketChannelHelper.write(to, hRequest.bbData) >= 0) {
             SendData ps = new SendData(to, from, hRequest);
             if (ps.hRequest.bbData.remaining() > 0) {
-                SelectionKey sk = addWrite(ps.toSc);
-                sk.attach(ps);
+                registerWrite(ps.toSc, ps);
             } else {
-                SelectionKey sk = addRead(ps.toSc);
-                sk.attach(ps);
+                registerRead(ps.toSc, ps);
             }
         }
     }
@@ -52,16 +49,16 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
             HttpServerRequest hRequest = sendData.hRequest;
             SocketChannel sc = (SocketChannel) key.channel();
             NioSocketActionType op = hRequest.readHttpHead(sc, iMaxHttpHeadLength, iMaxHttpBodyLength);
-            if (op == NioSocketActionType.OP_READ_COMPLETED) {
+            if (op == NioSocketActionType.NSA_READ_COMPLETED) {
                 if (hRequest.parseRequestAndHeader()) {
                     onRecv(sendData.toFrom, hRequest);
-                    return NioSocketActionType.OP_CLOSE;
+                    return NioSocketActionType.NSA_CLOSE;
                 }
             } else {
                 return op;
             }
         }
-        return NioSocketActionType.OP_CLOSE;
+        return NioSocketActionType.NSA_CLOSE;
     }
 
     @Override
@@ -73,13 +70,13 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
             if (SocketChannelHelper.write(sc, hs.bbData) > 0) {
                 if (hs.bbData.remaining() == 0) {
                     hs.reset();
-                    return NioSocketActionType.OP_READ;
+                    return NioSocketActionType.NSA_READ;
                 } else {
-                    return NioSocketActionType.OP_WRITE;
+                    return NioSocketActionType.NSA_WRITE;
                 }
             }
         }
-        return NioSocketActionType.OP_CLOSE;
+        return NioSocketActionType.NSA_CLOSE;
     }
 
     @Override

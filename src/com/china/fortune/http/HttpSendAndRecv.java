@@ -29,6 +29,7 @@ public class HttpSendAndRecv {
 		byte[] bBody = null;
 		HttpResponse hs = doGetInner(sUrl);
 		if (hs != null) {
+			Log.log(hs.toString());
 			if (hs.getStatusCode() == 200) {
 				bBody = hs.getByteBody();
 			} else {
@@ -58,7 +59,7 @@ public class HttpSendAndRecv {
 			if (hs.getStatusCode() == 200) {
 				sRecv = hs.getBody();
 			} else {
-//				Log.logClass(hs.toString() + hs.getBody());
+				Log.logClass(hs.toString() + hs.getBody());
 			}
 		}
 		return sRecv;
@@ -75,6 +76,7 @@ public class HttpSendAndRecv {
 			if (hs.getStatusCode() == 200) {
 				sRecv = hs.getBody();
 			} else {
+				sRecv = hs.getBody();
 				Log.logClass(hs.toString());
 			}
 		}

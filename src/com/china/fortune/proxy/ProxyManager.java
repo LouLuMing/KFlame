@@ -5,6 +5,7 @@ import com.china.fortune.file.ReadFileAction;
 import com.china.fortune.file.WriteFileAction;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
+import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.json.JSONArray;
 import com.china.fortune.json.JSONObject;
@@ -83,12 +84,15 @@ public class ProxyManager {
     }
 
     private CommandAction commandAction = new CommandAction(this);
-    public void doCommand(String sResource, HttpServerRequest hReq, HttpResponse hRes) {
+    public void doCommand(String sResource, HttpServerRequest hReq) {
+        HttpResponse hRes = new HttpResponse();
         if (commandAction.isMatch(sResource)) {
             commandAction.doAction(sResource, hReq, hRes);
         } else {
             hRes.setResponse(404);
+            hRes.setBody(null);
         }
+        hReq.setByteBuffer(hRes);
     }
 
     public JSONArray toJSONArray(String sResource) {

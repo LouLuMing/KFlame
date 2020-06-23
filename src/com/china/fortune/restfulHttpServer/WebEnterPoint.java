@@ -192,7 +192,6 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         addServlet(null, new IPAllowAction());
         addServlet(null, new IPFrequentAction());
 
-        addServlet(new EchoAction());
         addServlet(new ShowHttpAction());
         addServlet(new AddAllowIPAction());
         addIPAllowServelt(new ShowStatisticsAction(this));

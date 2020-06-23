@@ -272,7 +272,7 @@ public class HttpHeader {
 		}
 	}
 
-	static final public int iMinGZipLength = 1024 * 4;
+	static final public int iMinGZipLength = 1024;
 
 	public void setBodyGZip(byte[] bData) {
 		if (bData != null) {
@@ -500,22 +500,41 @@ public class HttpHeader {
 		return rs;
 	}
 
-	public byte[] toByte() {
-		int iLen = 0;
+	public ByteBuffer toByteBuffer() {
 		byte[] bResBody = getByteBody();
-		if (bResBody != null) {
-			iLen = bResBody.length;
-		}
 		String sHeader = toString();
 		byte[] bHeader = null;
 		try {
 			bHeader = sHeader.getBytes(ConstData.sHttpCharset);
 		} catch (Exception e) {
 		}
-		if (bHeader != null) {
-			iLen += bHeader.length;
+
+		int iLen = bHeader.length;
+		if (bResBody != null) {
+			iLen += bResBody.length;
+		}
+		ByteBuffer bb = ByteBuffer.allocate(iLen);
+		bb.put(bHeader);
+		if (bResBody != null) {
+			bb.put(bResBody);
+		}
+		bb.flip();
+		return bb;
+	}
+
+	public byte[] toByte() {
+		byte[] bResBody = getByteBody();
+		String sHeader = toString();
+		byte[] bHeader = null;
+		try {
+			bHeader = sHeader.getBytes(ConstData.sHttpCharset);
+		} catch (Exception e) {
 		}
 
-		return ByteAction.append(bHeader, bResBody);
+		if (bResBody != null) {
+			return ByteAction.append(bHeader, bResBody);
+		} else {
+			return bHeader;
+		}
 	}
 }

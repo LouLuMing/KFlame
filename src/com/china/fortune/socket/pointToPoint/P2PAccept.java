@@ -7,7 +7,7 @@ import com.china.fortune.socket.SocketChannelHelper;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-public abstract class P2PAccept extends P2PSendRecv {
+public abstract class P2PAccept extends P2PSendRecvOld {
     protected Thread tThread = null;
 
     protected abstract boolean onChannelAccept(SocketChannel sc);

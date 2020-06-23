@@ -35,6 +35,7 @@ public class HttpResponse extends HttpHeader {
 
 	public HttpResponse(int code) {
 		iCode = code;
+		sReason = HttpProp.getError(code);
 	}
 
 	public HttpResponse(int code, String reason) {

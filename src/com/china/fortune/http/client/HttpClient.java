@@ -67,7 +67,7 @@ public class HttpClient {
 
 	public LineSocketAction createLSA(HttpRequest hrRequest) {
 		LineSocketAction lSA = null;
-		if (hrRequest.isHttp()) {
+		if (hrRequest.isbHttp()) {
 			lSA = createLSA(hrRequest.getServerIP(), hrRequest.getServerPort());
 		} else {
 			lSA = createLSA(null, null, hrRequest.getServerIP(), hrRequest.getServerPort());

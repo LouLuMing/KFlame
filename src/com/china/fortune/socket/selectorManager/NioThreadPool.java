@@ -11,7 +11,7 @@ public abstract class NioThreadPool {
     protected int iLimitContinuousWork = 5;
 
     protected AtomicInteger iTotalThreadCount = new AtomicInteger(0);
-    protected int iMinThread = 1;
+    protected int iMinThread = 2;
     protected int iMaxThread = Runtime.getRuntime().availableProcessors();
 
     protected int iThreadSleep = 5;
@@ -29,18 +29,20 @@ public abstract class NioThreadPool {
     protected boolean bRunning = true;
     private Thread tFirst = null;
     protected long lFirstThreadId = 0;
-
     public void start() {
         bRunning = true;
+//        if (iMinThread > iMaxThread) {
+            iMinThread = iMaxThread;
+ //       }
         if (iMaxThread < 2) {
             iMaxThread = 2;
         }
-        if (iMinThread > iMaxThread) {
-            iMinThread = iMaxThread;
+        if (iMinThread < 2) {
+            iMinThread = 2;
         }
         tFirst = addNewThread();
         lFirstThreadId = tFirst.getId();
-        for (int i = 1; i < iMinThread; i++) {
+        for (int i = 1; i < iMaxThread; i++) {
             addNewThread();
         }
         Log.logClass("minThread:" + iMinThread + " maxThread:" + iMaxThread);

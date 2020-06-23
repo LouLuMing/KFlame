@@ -1,4 +1,0 @@
-<target name="LoadClassAndRunMainTarget" class="${package}.loadClass.LoadClassAndRunMainTarget">
-	<url>http://cs.yiqi1717.com:20000/myAnt.jar</url>
-	<class>com.china.fortune.test.myTest</class>
-</target>

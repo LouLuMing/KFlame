@@ -1,6 +1,7 @@
 package com.china.fortune.http.property;
 
 import com.china.fortune.file.FileHelper;
+import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.struct.FastHashMap;
 
 import java.util.HashMap;
@@ -16,6 +17,8 @@ public final class HttpProp {
 
     static String[] lsErrorCode = new String[1024];
 
+    static public byte[] bHR304;
+    static public byte[] bHR404;
     static {
         mapContentType.put("css", "text/css");
         mapContentType.put("html", "text/html");
@@ -41,6 +44,12 @@ public final class HttpProp {
         lsErrorCode[500] = "Internal Server Error";
 
         mapContentType.initHitCache();
+
+        HttpResponse hRes = new HttpResponse(304);
+        hRes.setBody(null);
+        bHR304 = hRes.toByte();
+        hRes.setResponse(404);
+        bHR404 = hRes.toByte();
     }
 
     static public String getContentType(String sType) {

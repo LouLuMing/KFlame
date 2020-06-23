@@ -1,30 +1,14 @@
 package com.china.fortune.proxy;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.socket.selectorManager.NioRWAttach;
+import com.china.fortune.socket.bk.NioRWAttach;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.struct.FastList;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RouterNio extends NioRWAttach {
-    @Override
-    protected void selectAction(FastList<SelectionKey> qSelectedKey) {
-
-        while (!qAddRead.isEmpty()) {
-            PairSocket ps = qAddRead.poll();
-            if (ps != null) {
-                SelectionKey skTo = addRead(ps.to);
-                skTo.attach(ps.from);
-                SelectionKey skFrom = addRead(ps.from);
-                skFrom.attach(ps.to);
-            }
-        }
-        super.selectAction(qSelectedKey);
-    }
 
     protected NioSocketActionType onRead(SelectionKey key, Object objForThread) {
         ByteBuffer bb = (ByteBuffer) objForThread;
@@ -45,14 +29,14 @@ public class RouterNio extends NioRWAttach {
             Log.logClass(e.getMessage());
         }
         if (rs) {
-            return NioSocketActionType.OP_READ;
+            return NioSocketActionType.NSA_READ;
         } else {
-            return NioSocketActionType.OP_CLOSE;
+            return NioSocketActionType.NSA_CLOSE;
         }
     }
 
     protected NioSocketActionType onWrite(SelectionKey key, Object objForThread) {
-        return NioSocketActionType.OP_READ;
+        return NioSocketActionType.NSA_READ;
     }
 
     @Override
@@ -67,6 +51,11 @@ public class RouterNio extends NioRWAttach {
     }
 
     @Override
+    protected NioSocketActionType onConnect(SelectionKey key, Object objForThread) {
+        return NioSocketActionType.NSA_READ;
+    }
+
+    @Override
     protected Object createObjectInThread() {
         return ByteBuffer.allocate(64 * 1024);
     }
@@ -75,17 +64,8 @@ public class RouterNio extends NioRWAttach {
     protected void destroyObjectInThread(Object objForThread) {
     }
 
-    private class PairSocket {
-        SocketChannel from;
-        SocketChannel to;
+    public void addPairSocketToRead(SocketChannel to, SocketChannel from) {
+        SelectionKey skTo = registerRead(to, from);
+        SelectionKey skFrom = registerRead(from, to);
     }
-
-    public void addPairSocketToRead(SocketChannel s1, SocketChannel s2) {
-        PairSocket ps = new PairSocket();
-        ps.from = s1;
-        ps.to = s2;
-        qAddRead.add(ps);
-    }
-
-    private ConcurrentLinkedQueue<PairSocket> qAddRead = new ConcurrentLinkedQueue<PairSocket>();
 }

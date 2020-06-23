@@ -13,16 +13,12 @@ public class SocketChannelHelper {
     static final private int iConnectTimeout = 2500;
     static final private int iSoTimeout = 5000;
 
-    static public SocketChannel connectNoBlock(String ip, int port) {
+    static public SocketChannel connect(InetSocketAddress isa) {
         SocketChannel sc = null;
         try {
             sc = SocketChannel.open();
             if (sc != null && sc.socket() != null) {
-                InetSocketAddress isa = new InetSocketAddress(ip, port);
                 sc.socket().connect(isa, iConnectTimeout);
-                sc.socket().setSoTimeout(iSoTimeout);
-                sc.configureBlocking(false);
-                sc.socket().setSoLinger(true, 0);
             }
         } catch (Exception e) {
             Log.logClass(e.getMessage());
@@ -38,7 +34,6 @@ public class SocketChannelHelper {
             if (sc != null && sc.socket() != null) {
                 InetSocketAddress isa = new InetSocketAddress(ip, port);
                 sc.socket().connect(isa, iConnectTimeout);
-                sc.socket().setSoTimeout(iSoTimeout);
             }
         } catch (Exception e) {
             Log.logClass(e.getMessage());

@@ -8,6 +8,7 @@ import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ChainServlet;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.socket.IPHelper;
+import com.china.fortune.socket.selectorManager.NioSocketActionType;
 import com.china.fortune.string.StringAction;
 import com.china.fortune.struct.FastList;
 import com.china.fortune.struct.HitCacheManager;

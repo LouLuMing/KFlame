@@ -1,12 +1,13 @@
 package com.china.fortune.socket.pointToPoint;
 
+import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.thread.ThreadUtils;
 import com.china.fortune.socket.SocketChannelHelper;
 
 import java.nio.channels.SocketChannel;
 
-public abstract class P2PConnect extends P2PSendRecv {
+public abstract class P2PConnect extends P2PSendRecvOld {
     protected Thread tThread = null;
     static private int iMaxSleepCount = 60 * 5;
     static private int iMaxErrorCount = iMaxSleepCount * 2;
@@ -20,6 +21,7 @@ public abstract class P2PConnect extends P2PSendRecv {
                     try {
                         SocketChannel sc = SocketChannelHelper.connect(sServer, iPort);
                         if (sc != null) {
+                            sc.socket().setSoTimeout(ConstData.iRecvTimeout);
                             iError = 0;
                             Log.logClass("Connect OK " + sServer + ":" + iPort);
                             startAndBlock(sc);
