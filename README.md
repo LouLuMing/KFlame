@@ -1,5 +1,6 @@
 # GWeb
-反向代理软件，体积小，没有依赖，接口代理性能高于nginx
+反向代理软件，体积800k，没有任何依赖，接口代理性能高于nginx，文件代理性能差不多
+可运行程序bin.tar,解压，配置后直接运行
 tar xvf bin.tar
 修改myAnt.xml
 配置端口<localport>8989</localport>
