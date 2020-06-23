@@ -9,13 +9,9 @@ tar xvf bin.tar
 
 配置映射路径
 
-映射文件
+映射文件<resource url="/satic">/mnt/sdb/work/jxzhly/web/dist</resource>
 
-<resource url="/satic">/mnt/sdb/work/jxzhly/web/dist</resource>
-
-映射接口
-
-<resource url="/">http://192.168.1.144:9000</resource>
+映射接口<resource url="/">http://192.168.1.144:9000</resource>
 
 启动项目
 
