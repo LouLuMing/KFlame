@@ -6,7 +6,7 @@ import com.china.fortune.global.Log;
 import com.china.fortune.http.UrlParam;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public abstract class RestfulClassServlet<E> extends RestfulBaseServlet<E> {
 	protected CheckKeys ksKey = new CheckKeys();
@@ -59,7 +59,7 @@ public abstract class RestfulClassServlet<E> extends RestfulBaseServlet<E> {
 //					}
 
 					String sValue = UrlParam.findValue(sResource, sKey);
-					if (StringAction.length(sValue) > 0) {
+					if (StringUtils.length(sValue) > 0) {
 						setValue(obj, f, sValue);
 					} else if (ksKey.find(sKey) >= 0) {
 						bParamValid = false;

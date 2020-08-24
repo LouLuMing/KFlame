@@ -3,7 +3,7 @@ package com.china.fortune.os.file;
 import java.io.File;
 import java.util.ArrayList;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.file.SerachFileInterface;
 import com.china.fortune.global.Log;
 
@@ -95,7 +95,7 @@ public class PathUtils {
 			File[] files = dirFile.listFiles();
 			for (int i = 0; i < files.length; i++) {
 				if (files[i].isFile()) {
-					flag = FileHelper.delete(files[i].getAbsolutePath());
+					flag = FileUtils.delete(files[i].getAbsolutePath());
 				} else {
 					flag = delete(files[i].getAbsolutePath(), true);
 				}
@@ -144,7 +144,7 @@ public class PathUtils {
 			File[] srcFiles = srcDir.listFiles();
 			for (int i = 0; i < srcFiles.length; i++) {
 				if (srcFiles[i].isFile()) {
-					FileHelper.copy(sSrcFileName, sDesFileName, srcFiles[i].getName(), srcFiles[i].getName());
+					FileUtils.copy(sSrcFileName, sDesFileName, srcFiles[i].getName(), srcFiles[i].getName());
 				} else if (srcFiles[i].isDirectory()) {
 					String sSubSrc = PathUtils.addSeparator(sSrcFileName) + srcFiles[i].getName() + File.separator;
 					String sSubDes = PathUtils.addSeparator(sDesFileName) + srcFiles[i].getName() + File.separator;
@@ -197,9 +197,9 @@ public class PathUtils {
 	static public void getAllFile(String sDir, ArrayList<String> lsFileName) {
 		File dir = new File(sDir);
 		if (dir.isDirectory()) {
-			File[] lsFiles = dir.listFiles();
-			if (lsFiles != null) {
-				for (File file : lsFiles) {
+			File[] lsFile = dir.listFiles();
+			if (lsFile != null) {
+				for (File file : lsFile) {
 					if (file.isFile()) {
 						lsFileName.add(file.getAbsolutePath());
 					} else {
@@ -235,7 +235,7 @@ public class PathUtils {
 		for (String sSrcFile : lsSrcileName) {
 			String sDesFile = sSrcFile.replace(sSrcPath, sDesPath);
 			create(getParentPath(sDesFile, false));
-			FileHelper.copy(sSrcFile, sDesFile);
+			FileUtils.copy(sSrcFile, sDesFile);
 		}
 	}
 
@@ -249,7 +249,7 @@ public class PathUtils {
             if (fDes.exists() && fSrc.exists()) {
 				if (fDes.lastModified() < fSrc.lastModified()) {
 					create(getParentPath(sDesFile, false));
-					FileHelper.copy(sSrcFile, sDesFile);
+					FileUtils.copy(sSrcFile, sDesFile);
 				}
 			}
         }

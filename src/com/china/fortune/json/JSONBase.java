@@ -1,6 +1,6 @@
 package com.china.fortune.json;
 
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class JSONBase {
 	public Object copy(Object o) {
@@ -17,15 +17,43 @@ public class JSONBase {
 		}
 	}
 
+	protected double optDouble(Object o) {
+		if (o != null) {
+			Class<?> cls = o.getClass();
+			if (cls == char[].class) {
+				return Double.parseDouble(new String((char[]) o));
+			} else if (cls == Double.class || cls == double.class) {
+				return (double) o;
+			} else if (cls == String.class) {
+				return Double.parseDouble((String) o);
+			}
+		}
+		return 0;
+	}
+
+	protected float optFloat(Object o) {
+		if (o != null) {
+			Class<?> cls = o.getClass();
+			if (cls == char[].class) {
+				return Float.parseFloat(new String((char[]) o));
+			} else if (cls == Float.class || cls == float.class) {
+				return (float) o;
+			} else if (cls == String.class) {
+				return Float.parseFloat((String) o);
+			}
+		}
+		return 0;
+	}
+
 	protected int optInt(Object o) {
 		if (o != null) {
 			Class<?> cls = o.getClass();
 			if (cls == char[].class) {
-				return StringAction.toInteger((char[]) o);
+				return StringUtils.toInteger((char[]) o);
 			} else if (cls == Integer.class || cls == int.class) {
 				return (int) o;
 			} else if (cls == String.class) {
-				return StringAction.toInteger((String) o);
+				return StringUtils.toInteger((String) o);
 			} else if (cls == Long.class || cls == long.class) {
 				return (int) ((long) o);
 			}
@@ -37,11 +65,11 @@ public class JSONBase {
 		if (o != null) {
 			Class<?> cls = o.getClass();
 			if (cls == char[].class) {
-				return StringAction.toLong((char[]) o);
+				return StringUtils.toLong((char[]) o);
 			} else if (cls == Long.class || cls == long.class) {
 				return (Long) o;
 			} else if (cls == String.class) {
-				return StringAction.toInteger((String) o);
+				return StringUtils.toInteger((String) o);
 			} else if (cls == Integer.class || cls == int.class) {
 				return (long) ((int) o);
 			}
@@ -81,6 +109,39 @@ public class JSONBase {
 			}
 		}
 		return null;
+	}
+
+	protected void toYaml(StringBuilder sb, int space, Object o) {
+		Class<?> cls = o.getClass();
+		if (cls == String.class) {
+			sb.append((String) o);
+			sb.append('\n');
+		} else if (cls == Integer.class || cls == int.class) {
+			sb.append((int) o);
+			sb.append('\n');
+		} else if (cls == Long.class || cls == long.class) {
+			sb.append((long) o);
+			sb.append('\n');
+		} else if (cls == Boolean.class) {
+			if (o == Boolean.TRUE) {
+				sb.append("true");
+			} else {
+				sb.append("false");
+			}
+			sb.append('\n');
+		} else if (cls == JSONObject.class) {
+			sb.append('\n');
+			((JSONObject) o).toYaml(sb, space+2);
+		} else if (cls == JSONArray.class) {
+			sb.append('\n');
+			((JSONArray) o).toYaml(sb, space+2);
+		} else if (cls == char[].class) {
+			sb.append((char[]) o);
+			sb.append('\n');
+		} else {
+			sb.append(o);
+			sb.append('\n');
+		}
 	}
 
 	protected void toString(StringBuilder sb, Object o) {

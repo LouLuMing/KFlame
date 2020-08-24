@@ -1,17 +1,17 @@
 package com.china.fortune.socket.selectorManager;
 
-import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.thread.ThreadUtils;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class NioThreadPool {
-    protected int iLimitQuitRequest = 30;
-    protected int iLimitContinuousWork = 5;
+    static final protected int iThreadSleepTime = 50;
+    static final protected int iLimitQuitRequest = 30;
+    static final protected int iLimitContinuousWork = 5;
 
     protected AtomicInteger iTotalThreadCount = new AtomicInteger(0);
-    protected int iMinThread = 2;
+    protected int iMinThread = Runtime.getRuntime().availableProcessors();
     protected int iMaxThread = Runtime.getRuntime().availableProcessors();
 
     protected int iThreadSleep = 5;
@@ -31,9 +31,9 @@ public abstract class NioThreadPool {
     protected long lFirstThreadId = 0;
     public void start() {
         bRunning = true;
-//        if (iMinThread > iMaxThread) {
+        if (iMinThread > iMaxThread) {
             iMinThread = iMaxThread;
- //       }
+        }
         if (iMaxThread < 2) {
             iMaxThread = 2;
         }
@@ -45,6 +45,7 @@ public abstract class NioThreadPool {
         for (int i = 1; i < iMaxThread; i++) {
             addNewThread();
         }
+        iTotalThreadCount.set(iMinThread);
         Log.logClass("minThread:" + iMinThread + " maxThread:" + iMaxThread);
     }
 
@@ -56,14 +57,14 @@ public abstract class NioThreadPool {
     public void waitToStop() {
         bRunning = false;
         while (iTotalThreadCount.get() != 0) {
-            ThreadUtils.sleep(ConstData.iThreadSleepTime);
+            ThreadUtils.sleep(iThreadSleepTime);
         }
     }
 
     public void join() {
         ThreadUtils.join(tFirst);
         while (iTotalThreadCount.get() != 0) {
-            ThreadUtils.sleep(ConstData.iThreadSleepTime);
+            ThreadUtils.sleep(iThreadSleepTime);
         }
     }
 

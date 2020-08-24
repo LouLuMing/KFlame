@@ -3,6 +3,7 @@ package com.china.fortune.proxy;
 import com.china.fortune.data.CacheClass;
 import com.china.fortune.file.ReadFileAction;
 import com.china.fortune.file.WriteFileAction;
+import com.china.fortune.global.CommonResource;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.property.HttpProp;
@@ -15,8 +16,12 @@ import com.china.fortune.struct.FastList;
 
 public class ProxyManager {
     public FastList<HostList> lsResourceMap = new FastList<>();
+    private CommandAction commandAction = new CommandAction();
 
-//    private CommandAction commandAction = new CommandAction(this);
+    public ProxyManager() {
+        CommonResource.put(this);
+    }
+
     public HostList getMatch(String sResource) {
         for (int i = 0; i < lsResourceMap.size(); i++) {
             HostList pl = lsResourceMap.get(i);
@@ -65,6 +70,24 @@ public class ProxyManager {
         return lsResourceMap.size();
     }
 
+    public void add(String resource, String path, boolean cache, boolean gzip) {
+        HostList pl = get(resource);
+        if (pl == null) {
+            pl = new HostList(resource);
+            lsResourceMap.add(pl);
+        }
+        if (cache && gzip) {
+            Log.log(resource + ":" + path + " cache gzip");
+        } else if (cache) {
+            Log.log(resource + ":" + path + " cache");
+        } else if (gzip) {
+            Log.log(resource + ":" + path + " gzip");
+        } else {
+            Log.log(resource + ":" + path);
+        }
+        pl.add(path, cache, gzip);
+    }
+
     public void add(String resource, String path) {
         HostList pl = get(resource);
         if (pl == null) {
@@ -83,7 +106,7 @@ public class ProxyManager {
         pl.del(path);
     }
 
-    private CommandAction commandAction = new CommandAction(this);
+
     public void doCommand(String sResource, HttpServerRequest hReq) {
         HttpResponse hRes = new HttpResponse();
         if (commandAction.isMatch(sResource)) {

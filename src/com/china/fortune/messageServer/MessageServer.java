@@ -3,10 +3,10 @@ package com.china.fortune.messageServer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.socket.SocketChannelUtils;
 import com.china.fortune.socket.intHead.IntBEHeadByteBuffer;
 import com.china.fortune.socket.selectorManager.NioLoginAttach;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public abstract class MessageServer extends NioLoginAttach {
 
@@ -34,12 +34,12 @@ public abstract class MessageServer extends NioLoginAttach {
 		if (ct.bbData.position() == 0) {
 			ct.bbData.limit(IntBEHeadByteBuffer.icHeadLen);
 		}
-		if (SocketChannelHelper.read(sc, ct.bbData) > 0) {
+		if (SocketChannelUtils.read(sc, ct.bbData) > 0) {
 			if (ct.iDataLength == 0) {
 				if (ct.parseHead()) {
 					if (ct.iDataLength <= MessageClient.iMaxDataLength) {
 						ct.bbData.limit(ct.iDataLength + MessageClient.iHeadLength);
-						rs = SocketChannelHelper.read(sc, ct.bbData) >= 0;
+						rs = SocketChannelUtils.read(sc, ct.bbData) >= 0;
 					} else {
 						MessageLog.log(ct.getUid() + ":Length out of limit:" + ct.iDataLength);
 						rs = false;
@@ -100,7 +100,7 @@ public abstract class MessageServer extends NioLoginAttach {
 		boolean rs = ct.checkToken(sToken);
 		if (!rs) {
 			String sValidToken = getToken(sUid);
-			if (StringAction.compareTo(sToken, sValidToken) == 0) {
+			if (StringUtils.compareTo(sToken, sValidToken) == 0) {
 				ct.sToken = sValidToken;
 				rs = true;
 			}
@@ -129,7 +129,7 @@ public abstract class MessageServer extends NioLoginAttach {
 		} else {
 			String sValidToken = getToken(sUid);
 			if (sValidToken != null) {
-				if (StringAction.compareTo(sValidToken, sToken) == 0) {
+				if (StringUtils.compareTo(sValidToken, sToken) == 0) {
 					ct = ccChild.createClient(sUid);
 					ct.sToken = sToken;
 					ct.scChannel = sc;

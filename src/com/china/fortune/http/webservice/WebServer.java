@@ -10,10 +10,8 @@ import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ChainServlet;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.restfulHttpServer.ActionToUrl;
-import com.china.fortune.restfulHttpServer.DataSaveInterface;
-import com.china.fortune.socket.IPHelper;
-import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.socket.IPUtils;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.FastList;
 import com.china.fortune.struct.HitCacheManager;
 import com.china.fortune.timecontrol.TimeoutSetAction;
@@ -40,9 +38,30 @@ public abstract class WebServer extends HttpServerNioAttach {
 	protected HitCacheManager hcm = new HitCacheManager();
 
 	protected String actionToUrl(ServletInterface servlet) {
-		return ActionToUrl.toUrl(servlet.getHost().getClass());
+		ServletInterface si = ServletUtils.getFinalHost(servlet);
+		return ActionToUrl.toUrl(si.getClass());
 	}
 
+	public void addPrevHead(String sHead) {
+		int iCount = lsTag.size();
+		for (int i = 0; i < iCount; i++) {
+			String sTag = lsTag.get(i);
+			if (StringUtils.length(sTag) > 0) {
+				lsTag.set(i, sHead + sTag);
+			}
+		}
+	}
+
+	public void cloneServletWithHead(String sHead) {
+		int iCount = lsTag.size();
+		for (int i = 0; i < iCount; i++) {
+			String sTag = lsTag.get(i);
+			if (StringUtils.length(sTag) > 0) {
+				lsTag.add(sHead + sTag);
+				lsServlet.add(lsServlet.get(i));
+			}
+		}
+	}
 	public int initHitCache() {
 		int i = hcm.init(lsTag);
 		hcm.showUsage();
@@ -55,7 +74,7 @@ public abstract class WebServer extends HttpServerNioAttach {
 		if (setBlockIP.size() > 0) {
 			try {
 				byte[] bAddr = ((InetSocketAddress) sc.getRemoteAddress()).getAddress().getAddress();
-				return !setBlockIP.contains(IPHelper.bytes2Int(bAddr));
+				return !setBlockIP.contains(IPUtils.bytes2Int(bAddr));
 			} catch (Exception e) {
 				Log.logException(e);
 			}
@@ -132,10 +151,12 @@ public abstract class WebServer extends HttpServerNioAttach {
 
 	public void addFilter(ServletInterface siHost, ServletInterface siFilter) {
 		if (siFilter != null) {
+			Log.logClass(siHost.getClass().getSimpleName() + ":" + siFilter.getClass().getSimpleName());
 			for (int i = lsServlet.size() - 1; i >= 0; i--) {
 				ServletInterface siShell = lsServlet.get(i);
 				if (siShell != null) {
-					if (siShell.getHost() == siHost) {
+					ServletInterface siFinalHost = ServletUtils.getFinalHost(siShell);
+					if (siFinalHost == siHost) {
 						if (siShell instanceof ChainServlet) {
 							((ChainServlet) siShell).addChild(siFilter);
 						} else {
@@ -156,7 +177,7 @@ public abstract class WebServer extends HttpServerNioAttach {
 
 	public ServletInterface getServlet(Class<?> cls) {
 		for (int i = lsServlet.size() - 1; i >= 0; i--) {
-			ServletInterface self = lsServlet.get(i).getHost();
+			ServletInterface self = ServletUtils.getFinalHost(lsServlet.get(i));
 			if (self.getClass() == cls) {
 				return self;
 			}
@@ -166,7 +187,7 @@ public abstract class WebServer extends HttpServerNioAttach {
 
 	public String getResource(Class<?> cls) {
 		for (int i = lsServlet.size() - 1; i >= 0; i--) {
-			ServletInterface self = lsServlet.get(i).getHost();
+			ServletInterface self = ServletUtils.getFinalHost(lsServlet.get(i));
 			if (self.getClass() == cls) {
 				return lsTag.get(i);
 			}
@@ -220,7 +241,7 @@ public abstract class WebServer extends HttpServerNioAttach {
 		if (lsNodes.size() > 0) {
 			Collections.sort(lsNodes, new Comparator<String>() {
 				public int compare(String o1, String o2) {
-					return StringAction.compareTo(o1, o2);
+					return StringUtils.compareTo(o1, o2);
 				}
 			});
 		}

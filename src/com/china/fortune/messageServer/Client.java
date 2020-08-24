@@ -5,7 +5,7 @@ import com.china.fortune.thread.ThreadUtils;
 import com.china.fortune.http.UrlBuilder;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.socket.intHead.IntBESocketAction;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.timecontrol.timeout.TimeoutAction;
 
 public abstract class Client {
@@ -191,7 +191,7 @@ public abstract class Client {
 	}
 
 	private boolean isTokenValid() {
-		return StringAction.length(getUid()) > 0 && StringAction.length(getToken()) > 0;
+		return StringUtils.length(getUid()) > 0 && StringUtils.length(getToken()) > 0;
 	}
 
 	private boolean checkToken() {

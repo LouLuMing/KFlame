@@ -1,0 +1,10 @@
+logtype: null
+class: com.china.fortune.proxy.ProxyServer
+param:
+  localport: 8989
+  resources:
+    /apk:
+      -/mnt/sdb/work/proxy
+    /showhttp:
+      -http://20.21.1.133:8990
+      -http://20.21.1.170:8990

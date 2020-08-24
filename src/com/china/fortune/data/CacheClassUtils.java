@@ -1,7 +1,7 @@
 package com.china.fortune.data;
 
 import com.china.fortune.easy.String2Struct;
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.os.file.PathUtils;
 import com.china.fortune.reflex.ClassJson;
@@ -18,11 +18,11 @@ public class CacheClassUtils {
 
     static public void saveClass(String sFile, Object o) {
         JSONObject json = ClassJson.toJSONObject(o);
-        FileHelper.writeSmallFile(sFile, json.toString(), "utf-8");
+        FileUtils.writeSmallFile(sFile, json.toString(), "utf-8");
     }
 
     static public boolean loadClass(String sFile, Object o) {
-        String sJson = FileHelper.readSmallFile(sFile, "utf-8");
+        String sJson = FileUtils.readSmallFile(sFile, "utf-8");
         if (sJson != null) {
             JSONObject json = new JSONObject(sJson);
             ClassJson.toObject(json, o);

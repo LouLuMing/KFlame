@@ -1,8 +1,8 @@
 package com.china.fortune.http.httpHead;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.http.property.HttpProp;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.FastList;
 
 import java.io.File;
@@ -62,10 +62,10 @@ public class HttpResponse extends HttpHeader {
 	}
 
 	public boolean parseResponse(String sResponse) {
-		String[] lsText = StringAction.split(sResponse, ' ', 3);
+		String[] lsText = StringUtils.split(sResponse, ' ', 3);
 		if (lsText != null && lsText.length > 1) {
 			sVersion = lsText[0];
-			iCode = StringAction.toInteger(lsText[1]);
+			iCode = StringUtils.toInteger(lsText[1]);
 			if (lsText.length > 2) {
 				sReason = lsText[2];
 			}
@@ -83,7 +83,7 @@ public class HttpResponse extends HttpHeader {
 		return iCode;
 	}
 
-	public String getReasonPhrase() {
+	public String getReason() {
 		return sReason;
 	}
 
@@ -137,10 +137,10 @@ public class HttpResponse extends HttpHeader {
 		if (sFileName != null) {
 			File file = new File(sFileName);
 			if (file.exists() && file.isFile()) {
-				byte[] bData = FileHelper.readSmallFile(file);
+				byte[] bData = FileUtils.readSmallFile(file);
 				if (bData != null) {
 					addHeader(HttpHeader.csEtag, String.valueOf(file.lastModified()));
-					String sShortFileName = FileHelper.getFileNameFromFullPath(sFileName);
+					String sShortFileName = FileUtils.getSimpleName(sFileName);
 					return putFile(sShortFileName, bData);
 				}
 			}
@@ -149,7 +149,7 @@ public class HttpResponse extends HttpHeader {
 	}
 
 	public void setFileHeader(String sFileName) {
-		String sShortFileName = FileHelper.getFileNameFromFullPath(sFileName);
+		String sShortFileName = FileUtils.getSimpleName(sFileName);
 		String sContentType = HttpProp.getContentTypeByFile(sShortFileName);
 		if (sContentType == null) {
 			sContentType = HttpProp.csDefaultContentType;

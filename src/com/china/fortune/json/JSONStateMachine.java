@@ -14,7 +14,7 @@ public class JSONStateMachine {
 				JSONDataCenter ji = (JSONDataCenter) owner;
 				return ji.goAndFilter();
 			}
-		};
+		}
 
 		jsonSM.addState("StartObject", new StateAction() {
 			protected boolean onAction(Object owner) {
@@ -404,7 +404,7 @@ public class JSONStateMachine {
 
 	public Object parseJSONObject(String sJson) {
 		JSONDataCenter jsonDC = new JSONDataCenter(sJson);
-		if (jsonSM.doAction(jsonDC)) {
+		if (jsonSM.doAction(jsonDC) != null) {
 			return jsonDC.getRootObject();
 		}
 		return null;
@@ -417,7 +417,7 @@ public class JSONStateMachine {
 
 	public Object parseJSONArray(String sJson) {
 		JSONDataCenter jsonDC = new JSONDataCenter(sJson);
-		if (jarrSM.doAction(jsonDC)) {
+		if (jarrSM.doAction(jsonDC) != null) {
 			return jsonDC.getRootObject();
 		}
 		return null;

@@ -11,7 +11,7 @@ import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.restfulHttpServer.ResultJson;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.timecontrol.TimeoutMapActionThreadSafe;
 
 public class VerifyCodeAction extends RestfulStringServlet {
@@ -32,7 +32,7 @@ public class VerifyCodeAction extends RestfulStringServlet {
 		tmats.checkTimeout();
 		String sCode = tmats.get(sPhone);
 		Log.logClass(sPhone + ":" + sCode + ":" + verifyCode);
-		if (StringAction.compareToIgnoreCase(sCode, verifyCode) == 0) {
+		if (StringUtils.compareToIgnoreCase(sCode, verifyCode) == 0) {
 			tmats.remove(sPhone);
 			return true;
 		} else {
@@ -53,7 +53,7 @@ public class VerifyCodeAction extends RestfulStringServlet {
 		hRes.setBody(bBody);
 		hRes.setContentType(HttpProp.getContentType("jpg"));
 		String id = json.optString("id");
-		if (StringAction.length(id) > 0) {
+		if (StringUtils.length(id) > 0) {
 			tmats.checkTimeout();
 			tmats.add(id, verifyCode);
 		}

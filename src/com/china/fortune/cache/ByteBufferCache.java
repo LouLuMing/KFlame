@@ -12,7 +12,7 @@ public class ByteBufferCache {
 	static final public int i1M = 1024 * 1024;
 
 	static public ByteBuffer allocate(int iSize) {
-		ByteBuffer bb = null;
+		ByteBuffer bb;
 		if (iSize <= i1K) {
 			bb = sq1K.poll();
 			if (bb != null) {

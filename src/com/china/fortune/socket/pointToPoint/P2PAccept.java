@@ -2,12 +2,12 @@ package com.china.fortune.socket.pointToPoint;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.thread.ThreadUtils;
-import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.socket.SocketChannelUtils;
 
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-public abstract class P2PAccept extends P2PSendRecvOld {
+public abstract class P2PAccept extends P2PChannel {
     protected Thread tThread = null;
 
     protected abstract boolean onChannelAccept(SocketChannel sc);
@@ -25,7 +25,7 @@ public abstract class P2PAccept extends P2PSendRecvOld {
                 bRunning = true;
                 while (bRunning) {
                     if (ssc == null) {
-                        ssc = SocketChannelHelper.createServerSocket(iListenPort);
+                        ssc = SocketChannelUtils.createServerSocket(iListenPort);
                         Log.logClass("Listen " + iListenPort);
                     }
                     if (ssc != null) {
@@ -34,7 +34,7 @@ public abstract class P2PAccept extends P2PSendRecvOld {
                             sc = ssc.accept();
                         } catch (Exception e) {
                             Log.logClass(e.getMessage());
-                            SocketChannelHelper.closeServer(ssc);
+                            SocketChannelUtils.closeServer(ssc);
                             ssc = null;
                             sc = null;
                         }
@@ -42,14 +42,16 @@ public abstract class P2PAccept extends P2PSendRecvOld {
                         if (sc != null) {
                             Log.logClass("0. Connection");
                             if (onChannelAccept(sc)) {
-                                SocketChannelHelper.closeServer(ssc);
+                                SocketChannelUtils.closeServer(ssc);
                                 startAndBlock(sc);
+                            } else {
+                                Log.logClass("1. Close Socket");
                             }
-                            SocketChannelHelper.close(sc);
+                            SocketChannelUtils.close(sc);
                         }
                     }
                 }
-                SocketChannelHelper.closeServer(ssc);
+                SocketChannelUtils.closeServer(ssc);
                 Log.logClass("Close Listen " + iListenPort);
             }
         };

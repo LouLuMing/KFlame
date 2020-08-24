@@ -7,7 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class SocketAction {
 	static public final int CONNECT_ERR = 0;
@@ -141,10 +141,10 @@ public class SocketAction {
 
 	// /// Millisecond
 	public void setTimeOut(int iConnect, int iRecv) {
-		if (iConnect > 5000 && iConnect < 180 * 1000) {
+		if (iConnect > 0 && iConnect < 180 * 1000) {
 			iConnectTimeOut = iConnect;
 		}
-		if (iRecv >= 0 && iRecv < 180 * 1000) {
+		if (iRecv > 0 && iRecv < 180 * 1000) {
 			iRecvTimeOut = iRecv;
 		}
 	}
@@ -183,7 +183,7 @@ public class SocketAction {
 	}
 
 	public boolean sendDataNoFlush(String sData) {
-		byte[] pData = StringAction.getBytes(sData, "utf-8");
+		byte[] pData = StringUtils.getBytes(sData, "utf-8");
 		return sendDataNoFlush(pData, pData.length);
 	}
 
@@ -221,7 +221,7 @@ public class SocketAction {
 	}
 
 	public boolean sendData(String sData) {
-		byte[] pData = StringAction.getBytes(sData, "utf-8");
+		byte[] pData = StringUtils.getBytes(sData, "utf-8");
 		return sendData(pData, pData.length);
 	}
 

@@ -2,23 +2,25 @@ package com.china.fortune.http.server;
 
 import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.easy.Int2Struct;
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
+import com.china.fortune.http.httpHead.HttpFormData;
 import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.httpHead.HttpRequest;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.property.HttpProp;
-import com.china.fortune.socket.IPHelper;
-import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.socket.IPUtils;
+import com.china.fortune.socket.SocketChannelUtils;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.ByteParser;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class HttpServerRequest extends HttpRequest {
@@ -33,19 +35,19 @@ public class HttpServerRequest extends HttpRequest {
     public long lActiveTicket = System.currentTimeMillis();
 
     public void setRemoteAddr(String sIp) {
-        bRemoteAddr = IPHelper.Ip2Bytes(sIp);
+        bRemoteAddr = IPUtils.Ip2Bytes(sIp);
     }
 
     public String getRmoteStringIP() {
-        return IPHelper.bytes2String(bRemoteAddr);
+        return IPUtils.bytes2String(bRemoteAddr);
     }
 
     public int getRemoteIP() {
-        return IPHelper.bytes2Int(bRemoteAddr);
+        return IPUtils.bytes2Int(bRemoteAddr);
     }
 
     public boolean remoteIPEqualTo(int ip) {
-        return IPHelper.bytes2Int(bRemoteAddr) == ip;
+        return IPUtils.bytes2Int(bRemoteAddr) == ip;
     }
 
     public void logByteBuffer() {
@@ -91,20 +93,22 @@ public class HttpServerRequest extends HttpRequest {
             if (iMax > iDataLength) {
                 iMax = iDataLength;
             }
-            sBody = StringAction.newString(bbData, iHeadLength, iHeadLength + iMax, sCharset);
+            sBody = StringUtils.newString(bbData, iHeadLength, iHeadLength + iMax, sCharset);
         }
         return sBody;
     }
 
+
     @Override
     public String getBody() {
-        String sBody = null;
-        if (iDataLength > 0) {
-            String sCharset = getCharset();
-            if (sCharset == null) {
-                sCharset = ConstData.sHttpCharset;
+        if (sBody == null) {
+            if (iDataLength > 0) {
+                String sCharset = getCharset();
+                if (sCharset == null) {
+                    sCharset = ConstData.sHttpCharset;
+                }
+                sBody = StringUtils.newString(bbData, iHeadLength, iHeadLength + iDataLength, sCharset);
             }
-            sBody = StringAction.newString(bbData, iHeadLength, iHeadLength + iDataLength, sCharset);
         }
         return sBody;
     }
@@ -116,13 +120,14 @@ public class HttpServerRequest extends HttpRequest {
 
     @Override
     public byte[] getByteBody() {
-        byte[] bBody = null;
-        if (iDataLength > 0) {
-            bBody = ByteBufferUtils.toByte(bbData, iHeadLength, iHeadLength + iDataLength);
+        if (bBody == null) {
+            if (iDataLength > 0) {
+                bBody = ByteBufferUtils.toByte(bbData, iHeadLength, iHeadLength + iDataLength);
 //            bBody = new byte[iDataLength];
 //            if (iDataLength > 0) {
 //                System.arraycopy(bbData.array(), iHeadLength, bBody, 0, iDataLength);
 //            }
+            }
         }
         return bBody;
     }
@@ -158,7 +163,8 @@ public class HttpServerRequest extends HttpRequest {
             i += sNameDot.length;
             int j = ByteBufferUtils.indexOf(bb, i, bDot);
             if (j > i) {
-                return new String(bBody, i, j - i);
+                return ByteBufferUtils.toString(bb, i, j);
+//                return new String(bBody, i, j - i);
             }
         }
         return null;
@@ -179,8 +185,8 @@ public class HttpServerRequest extends HttpRequest {
     public HashMap<String, Int2Struct> parseFormData() {
         String sRType = getHeaderValue(csContentType);
         if (sRType != null) {
-            String sTag = StringAction.getAfter(sRType, "boundary=");
-            if (StringAction.length(sTag) > 0) {
+            String sTag = StringUtils.getAfter(sRType, "boundary=");
+            if (StringUtils.length(sTag) > 0) {
                 HashMap<String, Int2Struct> mapIndex = new HashMap<String, Int2Struct>();
                 byte[] bTag = sTag.getBytes();
                 int iOff = iHeadLength;
@@ -212,7 +218,7 @@ public class HttpServerRequest extends HttpRequest {
     public String formDataToString(HashMap<String, Int2Struct> formData, String key) {
         Int2Struct i2s = formData.get(key);
         if (i2s != null && i2s.i2 > 0) {
-            return StringAction.newString(bbData, i2s.i1, i2s.i2);
+            return StringUtils.newString(bbData, i2s.i1, i2s.i2);
         } else {
             return null;
         }
@@ -232,59 +238,104 @@ public class HttpServerRequest extends HttpRequest {
     }
 
     private int findChunkLen() {
-        int iChuckHead = iHeadLength + iDataLength;
-        int i = ByteBufferUtils.indexOf(bbData, iChuckHead, bbData.position() +1, HttpHeader.fbCRLF);
-        if (i > 0) {
-            int iChunkLen = hexToInt(bbData, iChuckHead, bbData.position());
-            if (iChunkLen > 0) {
-                iDataLength += iChunkLen + (i - iChuckHead + 2);
+        int chunkSize = -1;
+        do {
+            int chunkHead = iHeadLength + iDataLength;
+            if (chunkHead < bbData.position()) {
+                int i = ByteBufferUtils.indexOf(bbData, chunkHead, bbData.position() + 1, HttpHeader.fbCRLF);
+                if (i > 0) {
+                    chunkSize = hexToInt(bbData, chunkHead, i);
+                    iDataLength += chunkSize + (i - chunkHead + 4);
+                } else {
+                    break;
+                }
             } else {
-                iDataLength += 5;
-//                iDataLength = bbData.position() - iHeadLength;
+                break;
             }
-            return iChunkLen;
-        }
-        return -1;
+//            Log.logClass("chunkSize " + chunkSize);
+        } while (chunkSize > 0);
+        return chunkSize;
     }
 
-    private boolean largeBuffer(int iTotalLength) {
-        int left = bbData.remaining();
-        if (iTotalLength > bbData.capacity()) {
-            int pos = bbData.position();
-            bbData.position(0);
-            ByteBuffer bb = ByteBuffer.allocateDirect(iTotalLength);
-            bb.put(bbData);
-            bb.position(pos);
-            bbData = bb;
-            return left == 0;
-        } else {
-            return false;
-        }
-    }
-
-    private boolean largeBuffer() {
-        return largeBuffer(iHeadLength + iDataLength + 16);
+    private void largeBuffer(int iTotalLength) {
+        int pos = bbData.position();
+        bbData.position(0);
+        ByteBuffer bb = ByteBuffer.allocateDirect(iTotalLength);
+        bb.put(bbData);
+        bb.position(pos);
+        bbData = bb;
     }
 
     private boolean largeBufferAndRead(SocketChannel sc, int iMaxHttpBodyLength) {
-        boolean rs = true;
-        if (iDataLength <= iMaxHttpBodyLength) {
-            int iLeft = bbData.remaining();
-            if (largeBuffer()) {
+        if (iDataLength + iHeadLength > bbData.capacity()) {
+            if (iDataLength <= iMaxHttpBodyLength) {
+                int iLeft = bbData.remaining();
+                largeBuffer(iHeadLength + iDataLength + 16);
                 if (iLeft == 0) {
-                    rs = SocketChannelHelper.read(sc, bbData) >= 0;
+                    return SocketChannelUtils.read(sc, bbData) >= 0;
+                }
+            } else {
+                Log.logError("Http Body Length Too Large " + (iHeadLength + iDataLength) + " Limit " + iMaxHttpBodyLength);
+            }
+        }
+        return false;
+    }
+
+    private NioSocketActionType parseNormalData() {
+        if ((iHeadLength + iDataLength) <= bbData.position()) {
+            lActiveTicket = Long.MAX_VALUE;
+            return NioSocketActionType.NSA_READ_COMPLETED;
+        } else {
+            return NioSocketActionType.NSA_READ;
+        }
+    }
+
+    private NioSocketActionType parseChunckData(SocketChannel sc, int iMaxHttpBodyLength) {
+        int iChunkLen = findChunkLen();
+        if (iChunkLen == 0) {
+            lActiveTicket = Long.MAX_VALUE;
+            return NioSocketActionType.NSA_READ_COMPLETED;
+        } else if (iChunkLen > 0) {
+            if (bbData.capacity() < iHeadLength + iDataLength) {
+                if (iDataLength <= iMaxHttpBodyLength) {
+                    largeBuffer(iHeadLength + iDataLength + 16);
+                } else {
+                    Log.logError("Http Body Length Too Large " + (iHeadLength + iDataLength) + " Limit " + iMaxHttpBodyLength);
+                    lActiveTicket = Long.MAX_VALUE;
+                    return NioSocketActionType.NSA_CLOSE;
                 }
             }
         } else {
-            Log.logError("Http Body Length Too Large " + iDataLength + ":" + iMaxHttpBodyLength);
-            rs = false;
+            int iLimitCap = iHeadLength + iDataLength + 16;
+            if (bbData.position() > iLimitCap) {
+                Log.logError("Http ChunckSize is Miss");
+                lActiveTicket = Long.MAX_VALUE;
+                return NioSocketActionType.NSA_CLOSE;
+            } else if (bbData.capacity() < iLimitCap) {
+//                largeBuffer(iLimitCap);
+                if (largeBufferAndRead(sc, iLimitCap)) {
+                    return parseChunckData(sc, iLimitCap);
+                }
+            }
         }
-        return rs;
+        return NioSocketActionType.NSA_READ;
+    }
+
+    private NioSocketActionType parseData(SocketChannel sc, int iMaxHttpBodyLength) {
+        if ((iHeadLength + iDataLength) <= bbData.position()) {
+            if (notChuncked) {
+                lActiveTicket = Long.MAX_VALUE;
+                return NioSocketActionType.NSA_READ_COMPLETED;
+            } else {
+                return parseChunckData(sc, iMaxHttpBodyLength);
+            }
+        }
+        return NioSocketActionType.NSA_READ;
     }
 
     public NioSocketActionType readHttpHead(SocketChannel sc, int iMaxHttpHeadLength, int iMaxHttpBodyLength) {
         int iLastPostion = bbData.position();
-        boolean rs = (SocketChannelHelper.read(sc, bbData) > 0);
+        boolean rs = (SocketChannelUtils.read(sc, bbData) > 0);
         if (rs) {
             if (iHeadLength == 0) {
                 iLastPostion -= 3;
@@ -295,50 +346,28 @@ public class HttpServerRequest extends HttpRequest {
                 if (i > 0) {
                     iHeadLength = i + HttpHeader.fbCRLFCRLF.length;
                     iDataLength = getContentLength(bbData, 0, i);
-                    if (iDataLength > 0) {
+                    if (iDataLength == 0) {
+                        lActiveTicket = Long.MAX_VALUE;
+                        return NioSocketActionType.NSA_READ_COMPLETED;
+                    } else if (iDataLength > 0) {
                         notChuncked = true;
-                        rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
+                        largeBufferAndRead(sc, iMaxHttpBodyLength);
+                        return parseNormalData();
                     } else {
                         if (isChunked(bbData, 0, iHeadLength)) {
                             notChuncked = false;
-                            findChunkLen();
-                            rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
+                            return parseChunckData(sc, iMaxHttpBodyLength);
                         } else {
-                            notChuncked = true;
+                            lActiveTicket = Long.MAX_VALUE;
+                            return NioSocketActionType.NSA_READ_COMPLETED;
                         }
                     }
                 } else if (bbData.position() > iMaxHttpHeadLength) {
                     Log.logError("Http Head Length Too Large " + bbData.position() + ":" + iMaxHttpHeadLength);
                     rs = false;
                 }
-            }
-            if (rs && iHeadLength > 0) {
-                if ((iHeadLength + iDataLength) <= bbData.position()) {
-                    if (notChuncked) {
-                        lActiveTicket = Long.MAX_VALUE;
-                        return NioSocketActionType.NSA_READ_COMPLETED;
-                    } else {
-                        int iChunkLen = findChunkLen();
-                        if (iChunkLen == 0) {
-                            if ((iHeadLength + iDataLength) <= bbData.position()) {
-                                lActiveTicket = Long.MAX_VALUE;
-                                return NioSocketActionType.NSA_READ_COMPLETED;
-                            } else {
-                                rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
-                                if (rs) {
-                                    if ((iHeadLength + iDataLength) <= bbData.position()) {
-                                        lActiveTicket = Long.MAX_VALUE;
-                                        return NioSocketActionType.NSA_READ_COMPLETED;
-                                    }
-                                }
-                            }
-                        } else if (iChunkLen > 0) {
-                            rs = largeBufferAndRead(sc, iMaxHttpBodyLength);
-                        } else {
-                            rs = false;
-                        }
-                    }
-                }
+            } else {
+                return parseData(sc, iMaxHttpBodyLength);
             }
         }
         if (rs) {
@@ -349,8 +378,8 @@ public class HttpServerRequest extends HttpRequest {
         }
     }
 
-    public boolean findHttpHeadLength(int iStart) {
-        int i = ByteBufferUtils.indexOf(bbData, iStart, bbData.position() + 1, HttpHeader.fbCRLFCRLF);
+    public boolean findHttpHeadLength() {
+        int i = ByteBufferUtils.indexOf(bbData, 10, HttpHeader.fbCRLFCRLF);
         if (i > 0) {
             iHeadLength = i + HttpHeader.fbCRLFCRLF.length;
             iDataLength = getContentLength(bbData, 0, i);
@@ -410,7 +439,7 @@ public class HttpServerRequest extends HttpRequest {
     }
 
     public void appendFileHeader(String sFileName) {
-        String sShortFileName = FileHelper.getFileNameFromFullPath(sFileName);
+        String sShortFileName = FileUtils.getSimpleName(sFileName);
         String sContentType = HttpProp.getContentTypeByFile(sShortFileName);
         if (sContentType == null) {
             sContentType = HttpProp.csDefaultContentType;
@@ -428,7 +457,9 @@ public class HttpServerRequest extends HttpRequest {
         bbData.put(csEnter.getBytes());
         if (bData != null) {
             int iLen = bbData.position() + iData;
-            largeBuffer(iLen);
+            if (bbData.capacity() < iLen) {
+                largeBuffer(iLen);
+            }
             bbData.put(bData);
         }
         bbData.flip();
@@ -464,12 +495,46 @@ public class HttpServerRequest extends HttpRequest {
         bbData.flip();
     }
 
+    public void setByteBuffer(HttpFormData hf) {
+        int iLen = 0;
+        ArrayList<byte[]> lsObj = hf.getBodyList();
+        if (lsObj != null) {
+            for (int i = 0; i < lsObj.size(); i++) {
+                iLen += lsObj.get(i).length;
+            }
+        }
+        String sHeader = hf.toString();
+        byte[] bHeader = null;
+        try {
+            bHeader = sHeader.getBytes(ConstData.sHttpCharset);
+        } catch (Exception e) {
+        }
+        if (bHeader != null) {
+            iLen += bHeader.length;
+        }
+
+        if (bbData.capacity() < iLen) {
+            bbData = ByteBuffer.allocateDirect(iLen);
+        } else {
+            bbData.clear();
+        }
+        if (bHeader != null) {
+            bbData.put(bHeader);
+        }
+        if (lsObj != null) {
+            for (int i = 0; i < lsObj.size(); i++) {
+                bbData.put(lsObj.get(i));
+            }
+        }
+//        bbData.flip();
+    }
+
     public void readyToWrite() {
         bbData.flip();
     }
 
     public int read(SocketChannel sc) {
-        return SocketChannelHelper.read(sc, bbData);
+        return SocketChannelUtils.read(sc, bbData);
     }
 
 //    public NioSocketActionType proxyData(SelectionKey key) {
@@ -481,7 +546,22 @@ public class HttpServerRequest extends HttpRequest {
     public NioSocketActionType proxyData(SelectionKey key) {
         bbData.flip();
         SocketChannel sc = (SocketChannel) key.channel();
-        if (SocketChannelHelper.write(sc, bbData) >= 0) {
+        if (SocketChannelUtils.write(sc, bbData) >= 0) {
+            if (bbData.remaining() == 0) {
+                reset();
+                key.interestOps(SelectionKey.OP_READ);
+            } else {
+                key.interestOps(SelectionKey.OP_WRITE);
+            }
+            return NioSocketActionType.NSA_NULL;
+        } else {
+            return NioSocketActionType.NSA_CLOSE;
+        }
+    }
+
+    public NioSocketActionType write(SelectionKey key) {
+        SocketChannel sc = (SocketChannel) key.channel();
+        if (SocketChannelUtils.write(sc, bbData) > 0) {
             if (bbData.remaining() == 0) {
                 reset();
                 key.interestOps(SelectionKey.OP_READ);
@@ -496,7 +576,7 @@ public class HttpServerRequest extends HttpRequest {
 
     public NioSocketActionType writeOrNo(SelectionKey key) {
         SocketChannel sc = (SocketChannel) key.channel();
-        if (SocketChannelHelper.write(sc, bbData) >= 0) {
+        if (SocketChannelUtils.write(sc, bbData) >= 0) {
             if (bbData.remaining() == 0) {
                 reset();
                 key.interestOps(SelectionKey.OP_READ);
@@ -519,21 +599,6 @@ public class HttpServerRequest extends HttpRequest {
             Log.logClass(e.getMessage());
         }
         return iRecv;
-    }
-
-    public NioSocketActionType write(SelectionKey key) {
-        SocketChannel sc = (SocketChannel) key.channel();
-        if (SocketChannelHelper.write(sc, bbData) > 0) {
-            if (bbData.remaining() == 0) {
-                reset();
-                key.interestOps(SelectionKey.OP_READ);
-            } else {
-                key.interestOps(SelectionKey.OP_WRITE);
-            }
-            return NioSocketActionType.NSA_NULL;
-        } else {
-            return NioSocketActionType.NSA_CLOSE;
-        }
     }
 
     public boolean findIfNoneMatch() {

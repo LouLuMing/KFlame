@@ -26,13 +26,13 @@ public class MySqlDbAction extends DbAction {
 		return selectString(sSelectDBName);
 	}
 
-	static private String ipToJdbc(String ip, String sDB) {
+	static private String ipToJdbc(String ip, String db) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(sMySqlJdbcHead);
 		sb.append(ip);
-		if (sDB != null) {
+		if (db != null) {
 			sb.append('/');
-			sb.append(sDB);
+			sb.append(db);
 		}
 		sb.append(sMySqlJdbcParam);
 		return sb.toString();

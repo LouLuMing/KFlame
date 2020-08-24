@@ -1,15 +1,15 @@
 package com.china.fortune.messageServer;
 
-import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.socket.SocketChannelUtils;
 import com.china.fortune.socket.intHead.IntBEHeadByteBuffer;
-import com.china.fortune.socket.selectorManager.NioMod;
+import com.china.fortune.socket.selectorManager.NioRWParallel;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-public abstract class MessageNewServer extends NioMod {
+public abstract class MessageNewServer extends NioRWParallel {
 	final private String sCharset = "utf-8";
 	static final public int iClientMapSize = 1024 * 64;
 	protected ClientController ccChild = new ClientController(iClientMapSize);
@@ -24,7 +24,7 @@ public abstract class MessageNewServer extends NioMod {
 
 	abstract protected void onClose(MessageClient ct, Object loginObj);
 
-	abstract protected boolean onDataRecv(String sUid, Object o, String sText);
+	abstract protected boolean onDataRecv(MessageClient ct, String sText);
 
 	protected Object doLogin(SocketChannel sc, Object objForThread) {
 		MessageClient ct = null;
@@ -57,26 +57,40 @@ public abstract class MessageNewServer extends NioMod {
 	}
 
 	private boolean doRead(SocketChannel sc, Object objForClient) {
-		boolean rs = true;
 		MessageClient ct = (MessageClient) objForClient;
-		if (SocketChannelHelper.read(sc, ct.bbData) > 0) {
-			if (ct.iDataLength == 0) {
-				if (ct.parseHead()) {
-					if (ct.iDataLength > MessageClient.iMaxDataLength) {
-						MessageLog.log(ct.getUid() + ":Length out of limit:" + ct.iDataLength);
-						rs = false;
+		if (SocketChannelUtils.read(sc, ct.bbData) > 0) {
+			do {
+				if (ct.iDataLength == 0) {
+					if (ct.parseHead()) {
+						if (ct.iDataLength > MessageClient.iMaxDataLength) {
+							MessageLog.log(ct.getUid() + ":Length out of limit:" + ct.iDataLength);
+							return false;
+						}
 					}
 				}
-			}
-			if (ct.readCompleted()) {
-				String sRecv = ct.getBody(sCharset);
-				rs = onDataRecv(ct.sUid, ct.attachment(), sRecv);
-				ct.bbData.clear();
-			}
-		} else {
-			rs = false;
+				if (ct.readCompleted()) {
+					String sRecv = ct.getBody(sCharset);
+					if (StringUtils.length(ct.sUid) == 0) {
+//						if (onLogin())
+					} else {
+						if (onDataRecv(ct, sRecv)) {
+							ct.removeUsedData();
+						} else {
+							return false;
+						}
+					}
+				} else {
+					return true;
+				}
+			} while (true);
 		}
-		return rs;
+		return false;
+	}
+
+	@Override
+	protected SelectionKey onAccept(SocketChannel sc) {
+		MessageClient ct = new MessageClient();
+		return registerRead(sc, ct);
 	}
 
 	@Override
@@ -145,7 +159,7 @@ public abstract class MessageNewServer extends NioMod {
 		boolean rs = ct.checkToken(sToken);
 		if (!rs) {
 			String sValidToken = getToken(sUid);
-			if (StringAction.compareTo(sToken, sValidToken) == 0) {
+			if (StringUtils.compareTo(sToken, sValidToken) == 0) {
 				ct.sToken = sValidToken;
 				rs = true;
 			}
@@ -174,7 +188,7 @@ public abstract class MessageNewServer extends NioMod {
 		} else {
 			String sValidToken = getToken(sUid);
 			if (sValidToken != null) {
-				if (StringAction.compareTo(sValidToken, sToken) == 0) {
+				if (StringUtils.compareTo(sValidToken, sToken) == 0) {
 					ct = ccChild.createClient(sUid);
 					ct.sToken = sToken;
 					ct.scChannel = sc;

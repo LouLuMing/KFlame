@@ -1,9 +1,9 @@
 package com.china.fortune.myant;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.os.file.PathUtils;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class MyAnt {
 	static public void main(String[] args) {
@@ -28,13 +28,13 @@ public class MyAnt {
 	static public String getString(String sTarget, String sKey) {
 		String sValue = null;
 		String sFile = PathUtils.getCurrentDataPath(true) + "myAnt.xml";
-		String sXml = FileHelper.readSmallFile(sFile, "utf-8");
+		String sXml = FileUtils.readSmallFile(sFile, "utf-8");
 		if (sXml != null) {
 			int iTarget = sXml.indexOf(sTarget);
 			if (iTarget < 0) {
 				iTarget = 0;
 			}
-			sValue = StringAction.findBetween(sXml, iTarget, sKey, sKey);
+			sValue = StringUtils.findBetween(sXml, iTarget, sKey, sKey);
 			Log.logClass(sTarget + ":" + sKey + ":" + sValue);
 		} else {
 			Log.logClass(sFile + ":miss");
@@ -46,7 +46,7 @@ public class MyAnt {
 		int iValue = -1;
 		String sValue = getString(sTarget, sKey);
 		if (sValue != null) {
-			iValue = StringAction.toInteger(sValue);
+			iValue = StringUtils.toInteger(sValue);
 		}
 		return iValue;
 	}

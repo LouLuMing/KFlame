@@ -3,7 +3,7 @@ package com.china.fortune.os.log;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class LogClassAction extends LogAction {
 	private LogAction obj = new LogAction();
@@ -100,7 +100,7 @@ public class LogClassAction extends LogAction {
 				for (StackTraceElement st : (new Throwable()).getStackTrace()) {
 					String sFullClassName = st.getClassName();
 					if (!lsLogMethods.contains(sFullClassName)) {
-						String sCN = StringAction.getBefore(sFullClassName, "$");
+						String sCN = StringUtils.getBefore(sFullClassName, "$");
 						if (lsShowClassNames.contains(sCN)
 								|| (bShowAllClasses && !lsHideClassNames.contains(sCN))) {
 							String sTag = getSimpleClassName(sFullClassName)

@@ -1,5 +1,6 @@
 package com.china.fortune.proxy.servlet;
 
+import com.china.fortune.global.CommonResource;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONObject;
@@ -8,15 +9,14 @@ import com.china.fortune.proxy.host.HostList;
 import com.china.fortune.restfulHttpServer.ResultJson;
 
 public class DelPathServlet extends RestfulStringServlet {
-    private ProxyManager actionManager;
     private String[] lsKey = { "resource", "path" };
-    public DelPathServlet(ProxyManager am) {
-        actionManager = am;
+    public DelPathServlet() {
         ksKey.append(lsKey);
         setUrlDecode(true);
     }
     @Override
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
+        ProxyManager actionManager = CommonResource.get(ProxyManager.class);
         HostList nif = actionManager.get(lsValues[0]);
         if (nif != null) {
             String sPath = lsValues[1];

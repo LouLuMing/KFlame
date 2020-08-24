@@ -5,7 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class InsertSql {
 	protected String sAction = "insert";
@@ -18,7 +18,7 @@ public class InsertSql {
 
 	public void removeItem(String sKey) {
 		for (SqlItem si : lsObject) {
-			if (StringAction.compareTo(si.sField, sKey) == 0) {
+			if (StringUtils.compareTo(si.sField, sKey) == 0) {
 				lsObject.remove(si);
 				break;
 			}

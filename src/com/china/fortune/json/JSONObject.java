@@ -77,6 +77,14 @@ public class JSONObject extends JSONBase {
 		return null;
 	}
 
+	public float optFloat(String key) {
+		return optFloat(mapItems.get(key));
+	}
+
+	public double optDouble(String key) {
+		return optDouble(mapItems.get(key));
+	}
+
 	public int getInt(String key) {
 		return optInt(key);
 	}
@@ -201,5 +209,26 @@ public class JSONObject extends JSONBase {
 			JSONStateMachine jsonSM = new JSONStateMachine();
 			jsonSM.parseJSONObject(sJson, this);
 		}
+	}
+
+	public String toYaml() {
+		StringBuilder sb = new StringBuilder();
+		toYaml(sb, 0);
+		return sb.toString();
+	}
+
+	public void toYaml(StringBuilder sb, int space) {
+		for (Entry<String, Object> so : mapItems.entrySet()) {
+			Object o = so.getValue();
+			if (o != null) {
+				for (int i = 0; i < space; i++) {
+					sb.append(' ');
+				}
+				sb.append(so.getKey());
+				sb.append(':');
+				toYaml(sb, space, o);
+			}
+		}
+//		sb.append('\n');
 	}
 }

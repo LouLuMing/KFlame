@@ -3,14 +3,14 @@ package com.china.fortune.statemachine;
 import java.util.ArrayList;
 
 public abstract class StateAction {
+	abstract protected boolean onAction(Object owner);
+
 	protected class PathAction {
 		public PathInterface pI = null;
 		public StateAction sNext = null;
 	}
 
 	protected ArrayList<PathAction> lsPathAction = new ArrayList<PathAction>(4);
-
-	abstract protected boolean onAction(Object owner);
 	
 	protected boolean bEndState = false;
 	

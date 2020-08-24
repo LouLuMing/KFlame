@@ -17,7 +17,7 @@ public class StatisticsServlet implements ServletInterface {
 	}
 
 	public ServletInterface getHost() {
-		return svHost.getHost();
+		return svHost;
 	};
 
 	@Override

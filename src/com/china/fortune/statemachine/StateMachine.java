@@ -1,9 +1,11 @@
 package com.china.fortune.statemachine;
 
+import com.china.fortune.global.Log;
+
 import java.util.HashMap;
 
 // StateAction can't be used twice, must new instance for every use
-public class StateMachine {
+public class StateMachine extends StateAction {
 	protected HashMap<String, StateAction> lsState = new HashMap<String, StateAction>();
 	protected String sStart = null;
 
@@ -22,14 +24,8 @@ public class StateMachine {
 		lsState.put(name, sa);
 	}
 
-	public void addState(String name, final StateMachine sm) {
-		StateAction sa = new StateAction(){
-			@Override
-			protected boolean onAction(Object owner) {
-				return sm.doAction(owner);
-			}
-		};
-		lsState.put(name, sa);
+	public void addState(String name, StateMachine sm) {
+		lsState.put(name, sm);
 	}
 	
 	public boolean addPath(String from, String to, PathInterface pathImp) {
@@ -40,11 +36,14 @@ public class StateMachine {
 			if (st != null) {
 				sf.addPath(pathImp, st);
 				rs = true;
+			} else {
+				Log.logClassError("miss:" + to);
 			}
+		} else {
+			Log.logClassError("miss:" + from);
 		}
 		return rs;
 	}
-
 	
 	public boolean addPath(String from, String to) {
 		boolean rs = false;
@@ -70,18 +69,22 @@ public class StateMachine {
 		}
 	}
 
-	public boolean doAction(Object owner) {
-		boolean rs = false;
+	@Override
+	protected boolean onAction(Object owner) {
+		return doAction(owner) != null;
+	}
+
+	@Override
+	public StateAction doAction(Object owner) {
 		StateAction sState = lsState.get(sStart);
 		while (sState != null) {
 			StateAction sNextState = sState.doAction(owner);
 			if (sState.isEndState()) {
-				rs = true;
 				break;
 			}
 			sState = sNextState;
 		}
-		return rs;
+		return sState;
 	}
 
 	public void clear() {

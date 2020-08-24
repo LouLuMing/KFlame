@@ -1,7 +1,7 @@
 package com.china.fortune.global;
 
 import com.china.fortune.os.log.LogAction;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.FastList;
 
 import java.io.PrintWriter;
@@ -127,7 +127,7 @@ public class Log {
 			if (bShowAllClasses || lsShowClassNames.size() > 0) {
 				StackTraceElement[] lsTrace = (new Throwable()).getStackTrace();
 				String sClassName = lsTrace[1].getClassName();
-				sClassName = StringAction.getBefore(sClassName, "$");
+				sClassName = StringUtils.getBefore(sClassName, "$");
 				if (lsShowClassNames.contains(sClassName) || (bShowAllClasses && !lsHideClassNames.contains(sClassName))) {
 					String sTag = getSimpleClassName(sClassName) + ":" + lsTrace[1].getMethodName();
 					obj.log(sTag + " " + sText);
@@ -139,18 +139,18 @@ public class Log {
 	static public int parseLoginType(String sLogType) {
 		int iLogType = LogAction.iConsole;
 		if (sLogType != null) {
-			if (sLogType.contains("con")) {
-				iLogType = LogAction.iConsole;
-			}
-			if (sLogType.contains("file")) {
-				if (iLogType == LogAction.iConsole) {
-					iLogType |= LogAction.iFile;
-				} else {
-					iLogType = LogAction.iFile;
-				}
-			}
 			if (sLogType.contains("null")) {
 				iLogType = LogAction.iNull;
+			} else {
+				if (sLogType.contains("con")) {
+					if (sLogType.contains("file")) {
+						iLogType = (LogAction.iConsole | LogAction.iFile);
+					} else {
+						iLogType = LogAction.iConsole;
+					}
+				} else if (sLogType.contains("file")) {
+					iLogType = LogAction.iFile;
+				}
 			}
 		}
 		return iLogType;
@@ -183,7 +183,7 @@ public class Log {
 	static public void logClassError(String sText) {
 		StackTraceElement[] lsTrace = (new Throwable()).getStackTrace();
 		String sClassName = lsTrace[1].getClassName();
-		sClassName = StringAction.getBefore(sClassName, "$");
+		sClassName = StringUtils.getBefore(sClassName, "$");
 		if (lsShowClassNames.contains(sClassName) || (bShowAllClasses && !lsHideClassNames.contains(sClassName))) {
 			String sTag = getSimpleClassName(sClassName) + ":" + lsTrace[1].getMethodName();
 			obj.log("Error " + sTag + " " + sText);

@@ -17,13 +17,10 @@ public class LogStateAction extends StateAction {
 	@Override
 	public StateAction doAction(Object owner) {
 		StateAction sNext = null;
-		boolean hz = onAction(owner);
-		if (hz) {
+		if (onAction(owner)) {
 			for (PathAction pA : lsPathAction) {
-				hz = pA.pI.onCondition(owner);
-				if (hz) {
-					hz = pA.pI.onAction(owner);
-					if (hz) {
+				if (pA.pI.onCondition(owner)) {
+					if (pA.pI.onAction(owner)) {
 						Log.log(sName + " to " + ((LogStateAction)pA.sNext).sName);
 						sNext = pA.sNext;
 					} else {
@@ -32,7 +29,9 @@ public class LogStateAction extends StateAction {
 					break;
 				}
 			}
-			if (hz && sNext == null) {
+			if (isEndState()) {
+				Log.log(sName + " endState");
+			} else if (sNext == null) {
 				Log.log(sName + ":no path");
 			}
 		} else {

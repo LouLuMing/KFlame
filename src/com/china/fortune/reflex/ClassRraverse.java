@@ -1,7 +1,7 @@
 package com.china.fortune.reflex;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class ClassRraverse {
     public static List<String> getClassName(String packageName, boolean childPackage) {
         List<String> fileNames = null;
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        String packagePath = StringAction.replace(packageName, '.', '/');
+        String packagePath = StringUtils.replace(packageName, '.', '/');
         URL url = loader.getResource(packagePath);
         if (url != null) {
             String type = url.getProtocol();
@@ -38,7 +38,7 @@ public class ClassRraverse {
 
         List<String> lsClassName = new ArrayList<String>();
         for (String fileName : fileNames) {
-            fileName = StringAction.replace(fileName, '/', '.');
+            fileName = StringUtils.replace(fileName, '/', '.');
             int index = fileName.indexOf(packageName);
             if (index > 0) {
                 lsClassName.add(fileName.substring(index));

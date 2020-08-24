@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 
 import com.china.fortune.easy.String2Struct;
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 // "key,name,value";
 public class JSONUtils {
@@ -253,7 +253,7 @@ public class JSONUtils {
 
 	protected void sumJSONObject(JSONObject des, JSONObject src, String sKey) {
 		for (String key : des.keySet()) {
-			if (StringAction.compareTo(key, sKey) != 0) {
+			if (StringUtils.compareTo(key, sKey) != 0) {
 				des.put(key, des.optInt(key) + src.optInt(key));
 			}
 		}
@@ -285,7 +285,7 @@ public class JSONUtils {
 	}
 
 	static public int optInt(JSONObject data, String sTag) {
-		String[] lsTag = StringAction.split(sTag, '.');
+		String[] lsTag = StringUtils.split(sTag, '.');
 		data = optParentJSONObject(data, lsTag);
 		if (data != null) {
 			return data.optInt(lsTag[lsTag.length - 1]);
@@ -295,7 +295,7 @@ public class JSONUtils {
 	}
 
 	static public String optString(JSONObject data, String sTag) {
-		String[] lsTag = StringAction.split(sTag, '.');
+		String[] lsTag = StringUtils.split(sTag, '.');
 		data = optParentJSONObject(data, lsTag);
 		if (data != null) {
 			return data.optString(lsTag[lsTag.length - 1]);
@@ -305,7 +305,7 @@ public class JSONUtils {
 	}
 
 	static public JSONArray optJSONArray(JSONObject data, String sTag) {
-		String[] lsTag = StringAction.split(sTag, '.');
+		String[] lsTag = StringUtils.split(sTag, '.');
 		data = optParentJSONObject(data, lsTag);
 		if (data != null) {
 			return data.optJSONArray(lsTag[lsTag.length - 1]);
@@ -315,7 +315,7 @@ public class JSONUtils {
 	}
 
 	static public Object opt(JSONObject data, String sTag) {
-		String[] lsTag = StringAction.split(sTag, '.');
+		String[] lsTag = StringUtils.split(sTag, '.');
 		data = optParentJSONObject(data, lsTag);
 		if (data != null) {
 			return data.opt(lsTag[lsTag.length - 1]);

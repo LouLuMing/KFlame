@@ -2,7 +2,7 @@ package com.china.fortune.data;
 
 import java.util.HashMap;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.os.file.PathUtils;
 import com.china.fortune.os.xml.XmlParser;
@@ -24,7 +24,7 @@ public class CacheXml {
 		String sDir = sXmlPath + sFile;
 		XmlNode xmlObj = lsObject.get(sDir);
 		if (xmlObj == null) {
-			String sXml = FileHelper.readSmallFile(sDir, ConstData.sFileCharset);
+			String sXml = FileUtils.readSmallFile(sDir, ConstData.sFileCharset);
 			if (sXml != null) {
 				xmlObj = XmlParser.parse(sXml, ConstData.sFileCharset);
 				lsObject.put(sDir, xmlObj);
@@ -38,7 +38,7 @@ public class CacheXml {
 			String sXml = xmlObj.createXML(ConstData.sFileCharset);
 			if (sXml != null) {
 				String sDir = sXmlPath + sFile;
-				FileHelper.writeSmallFile(sDir, sXml, ConstData.sFileCharset);
+				FileUtils.writeSmallFile(sDir, sXml, ConstData.sFileCharset);
 				XmlNode prev = lsObject.put(sDir, xmlObj);
 				if (prev != null) {
 					prev.clear();
@@ -53,7 +53,7 @@ public class CacheXml {
 		if (xmlObj != null) {
 			xmlObj.clear();
 		}
-		FileHelper.delete(sDir);
+		FileUtils.delete(sDir);
 	}
 	
 	public void delAll() {

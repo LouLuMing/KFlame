@@ -6,8 +6,8 @@ import com.china.fortune.json.JSONObject;
 import com.china.fortune.restfulHttpServer.property.InterfaceRSAKey;
 import com.china.fortune.restfulHttpServer.ResultJson;
 import com.china.fortune.secure.RSAAction;
-import com.china.fortune.socket.IPHelper;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.socket.IPUtils;
+import com.china.fortune.string.StringUtils;
 
 public class RSACheckAction extends RestfulStringServlet {
     private String[] lsKey = { "ip", "rsa" };
@@ -19,12 +19,12 @@ public class RSACheckAction extends RestfulStringServlet {
     @Override
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
         String sDecrypt = RSAAction.decryptByPrivateKey(lsValues[1], InterfaceRSAKey.RSA_Data_Private);
-        if (StringAction.compareTo(sDecrypt, lsValues[0]) == 0) {
+        if (StringUtils.compareTo(sDecrypt, lsValues[0]) == 0) {
             int clientIP;
             if (lsValues[0].indexOf('.') > 0) {
-                clientIP = IPHelper.Ip2Int(lsValues[0]);
+                clientIP = IPUtils.Ip2Int(lsValues[0]);
             } else {
-                clientIP = StringAction.toInteger(lsValues[0]);
+                clientIP = StringUtils.toInteger(lsValues[0]);
             }
 
             if (hReq.getRemoteIP() == clientIP) {

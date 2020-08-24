@@ -1,13 +1,11 @@
 package com.china.fortune.restfulHttpServer.action;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
-import com.china.fortune.http.UrlParam;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.os.file.PathUtils;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
 
 // small than 10K
 public class PostSmallFileAction implements ServletInterface {
@@ -19,7 +17,7 @@ public class PostSmallFileAction implements ServletInterface {
 		Log.logClass(sName);
 		String sFile = sRootPath + sName;	
 		byte[] bData = hReq.getByteBody();
-		FileHelper.writeSmallFile(sFile, bData);
+		FileUtils.writeSmallFile(sFile, bData);
 		return RunStatus.isOK;
 	}
 

@@ -49,10 +49,10 @@ public class ClassUtils {
 //            Field[] lsFields = cls.getFields();
 //            if (lsFields.size > 0) {
 //                lsNames = new String[lsFields.size];
-//                int index = 0;
+//                int iPort = 0;
 //                for (Field f : lsFields) {
 //                    if ((f.getModifiers() & Modifier.STATIC) == 0) {
-//                        lsNames[index++] = (f.getName());
+//                        lsNames[iPort++] = (f.getName());
 //                    }
 //                }
 //            }

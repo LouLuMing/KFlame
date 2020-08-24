@@ -6,6 +6,4 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AsServlet {
-    boolean ipAllow() default false;
-    boolean ipFrequent() default false;
 }

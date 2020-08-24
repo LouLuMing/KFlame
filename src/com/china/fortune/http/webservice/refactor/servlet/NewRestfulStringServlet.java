@@ -1,12 +1,11 @@
 package com.china.fortune.http.webservice.refactor.servlet;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.http.PairBuilder;
 import com.china.fortune.http.UrlBuilder;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.CheckKeys;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -65,11 +64,11 @@ public abstract class NewRestfulStringServlet extends NewRestfulBaseServlet<Stri
 	}
 
 	protected int getInt(String[] lsValues, String sKey) {
-		return StringAction.toInteger(getString(lsValues, sKey));
+		return StringUtils.toInteger(getString(lsValues, sKey));
 	}
 	
 	protected long getLong(String[] lsValues, String sKey) {
-		return StringAction.toLong(getString(lsValues, sKey));
+		return StringUtils.toLong(getString(lsValues, sKey));
 	}
 	
 	protected String getString(String[] lsValues, String sKey) {
@@ -119,9 +118,9 @@ public abstract class NewRestfulStringServlet extends NewRestfulBaseServlet<Stri
 						if (cType == String.class) {
 							f.set(o, sValue);
 						} else if (cType == Integer.class || cType == int.class) {
-							f.set(o, StringAction.toInteger(sValue));
+							f.set(o, StringUtils.toInteger(sValue));
 						} else if (cType == Long.class || cType == long.class) {
-							f.set(o, StringAction.toLong(sValue));
+							f.set(o, StringUtils.toLong(sValue));
 						}
 					}
 				}

@@ -9,7 +9,7 @@ import com.china.fortune.common.ByteAction;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.reflex.ClassSerialize;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class ReadFileAction {
 	static final int iMaxDataLen = 16 * 1024 * 1024;
@@ -108,7 +108,7 @@ public class ReadFileAction {
 	
 	public String readString() {
 		byte[] bData = readBytes();
-		String sData = StringAction.toString(bData, ConstData.sFileCharset);
+		String sData = StringUtils.toString(bData, ConstData.sFileCharset);
 		//Log.logClass(sData);
 		return sData;
 	}

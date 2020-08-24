@@ -64,7 +64,7 @@ public class MyAntEngine {
 						if (actionObj != null) {
 							mapRunTargets.lockPut(sName, actionObj);
 							try {
-								rs = actionObj.doAction(targetCfg, this);
+								rs = actionObj.doAction(this, targetCfg);
 							} catch (Exception e) {
 								Log.logException(e);
 							} catch (Error e) {

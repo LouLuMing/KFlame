@@ -5,6 +5,7 @@ import com.china.fortune.database.mySql.MySqlManager;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
+import com.china.fortune.http.webservice.ServletUtils;
 import com.china.fortune.http.webservice.WebServer;
 import com.china.fortune.http.webservice.servlet.ChainServlet;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
@@ -74,18 +75,7 @@ public abstract class BaseWebTarget extends WebServer implements TargetInterface
 				Object obj = cls.newInstance();
 				if (obj instanceof ServletInterface) {
 					if (cls.isAnnotationPresent(AsServlet.class)) {
-						AsServlet kf = cls.getAnnotation(AsServlet.class);
-						if (kf.ipFrequent() || kf.ipAllow()) {
-							ChainServlet cs = addChainServlet((ServletInterface)obj);
-							if (kf.ipFrequent()) {
-								cs.addChild(ipFrequent);
-							}
-							if (kf.ipAllow()) {
-								cs.addChild(ipAllow);
-							}
-						} else {
-							addServlet((ServletInterface) obj);
-						}
+						addServlet((ServletInterface) obj);
 					} else {
 						addServlet((ServletInterface) obj);
 					}
@@ -126,7 +116,7 @@ public abstract class BaseWebTarget extends WebServer implements TargetInterface
 
 	protected void injectBean(BeansFamily bf) {
 		for (int i = lsServlet.size() - 1; i >= 0; i--) {
-			ServletInterface self = lsServlet.get(i).getHost();
+			ServletInterface self = ServletUtils.getFinalHost(lsServlet.get(i));
 			bf.injectField(self);
 		}
 	}
@@ -199,7 +189,7 @@ public abstract class BaseWebTarget extends WebServer implements TargetInterface
 	}
 
 	@Override
-	public boolean doAction(XmlNode cfg, ProcessAction self) {
+	public boolean doAction(ProcessAction self, XmlNode cfg) {
 		WebConfig wc = new WebConfig();
 		ClassXml.toObject(cfg, wc);
 		if (ClassUtils.checkNoNull(wc)) {

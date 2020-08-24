@@ -52,6 +52,20 @@ public class JSONArray extends JSONBase {
 		lsChild.add(value ? Boolean.TRUE : Boolean.FALSE);
 	}
 
+	public float optFloat(int index) {
+		if (index >= 0 && index < lsChild.size()) {
+			return optFloat(lsChild.get(index));
+		}
+		return 0;
+	}
+
+	public double optDouble(int index) {
+		if (index >= 0 && index < lsChild.size()) {
+			return optDouble(lsChild.get(index));
+		}
+		return 0;
+	}
+
 	public int optInt(int index) {
 		if (index >= 0 && index < lsChild.size()) {
 			return optInt(lsChild.get(index));
@@ -141,6 +155,19 @@ public class JSONArray extends JSONBase {
 			sb.setCharAt(sb.length() - 1, ']');
 		} else {
 			sb.append(']');
+		}
+	}
+
+	public void toYaml(StringBuilder sb, int space) {
+		for (int i = 0; i < lsChild.size(); i++) {
+			Object o = lsChild.get(i);
+			if (o != null) {
+				for (int j = 0; j < space; j++) {
+					sb.append(' ');
+				}
+				sb.append('-');
+				toYaml(sb, space, o);
+			}
 		}
 	}
 }

@@ -5,11 +5,10 @@ import com.china.fortune.http.UrlParam;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerNioAttach;
 import com.china.fortune.http.server.HttpServerRequest;
-import com.china.fortune.http.webservice.servlet.ChainServlet;
+import com.china.fortune.http.webservice.ServletUtils;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
-import com.china.fortune.socket.IPHelper;
-import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.socket.IPUtils;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.FastList;
 import com.china.fortune.struct.HitCacheManager;
 import com.china.fortune.timecontrol.TimeoutSetAction;
@@ -43,7 +42,7 @@ public abstract class WebService extends HttpServerNioAttach {
 		if (setBlockIP.size() > 0) {
 			try {
 				byte[] bAddr = ((InetSocketAddress) sc.getRemoteAddress()).getAddress().getAddress();
-				return !setBlockIP.contains(IPHelper.bytes2Int(bAddr));
+				return !setBlockIP.contains(IPUtils.bytes2Int(bAddr));
 			} catch (Exception e) {
 				Log.logException(e);
 			}
@@ -84,7 +83,7 @@ public abstract class WebService extends HttpServerNioAttach {
 	public ServletInterface getServlet(Class<?> cls) {
 		for (int i = 0; i < lsServlet.size(); i++) {
 			ServletInterface si = lsServlet.get(i);
-			ServletInterface self = si.getHost();
+			ServletInterface self = ServletUtils.getFinalHost(si);
 			if (self.getClass() == cls) {
 				return self;
 			}
@@ -104,7 +103,7 @@ public abstract class WebService extends HttpServerNioAttach {
 
 	protected void redirectServlet(String sSrc, String sDes) {
 		for (int i = 0; i < lsTag.size(); i++) {
-			if (StringAction.compareTo(lsTag.get(i), sSrc) == 0) {
+			if (StringUtils.compareTo(lsTag.get(i), sSrc) == 0) {
 				ServletInterface si = lsServlet.get(i);
 				addServlet(sDes, si);
 				break;
@@ -134,7 +133,7 @@ public abstract class WebService extends HttpServerNioAttach {
 		if (lsNodes.size() > 0) {
 			Collections.sort(lsNodes, new Comparator<String>() {
 				public int compare(String o1, String o2) {
-					return StringAction.compareTo(o1, o2);
+					return StringUtils.compareTo(o1, o2);
 				}
 			});
 		}

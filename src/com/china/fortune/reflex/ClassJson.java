@@ -3,7 +3,7 @@ package com.china.fortune.reflex;
 import com.china.fortune.global.Log;
 import com.china.fortune.json.JSONArray;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.FastList;
 
 import java.lang.reflect.Field;
@@ -292,7 +292,7 @@ public class ClassJson {
     }
 
     static public JSONObject toJSONObject(Object o, String sFileds) {
-        String[] lsFields = StringAction.split(sFileds, ',');
+        String[] lsFields = StringUtils.split(sFileds, ',');
         return toJSONObject(o, lsFields);
     }
 
@@ -303,7 +303,7 @@ public class ClassJson {
             Field[] lsFields = c.getFields();
             for (Field f : lsFields) {
                 String sKey = f.getName();
-                if (StringAction.findString(lsField, sKey) < 0) {
+                if (StringUtils.findString(lsField, sKey) < 0) {
                     getFieldToJson(o, f, json);
                 }
             }

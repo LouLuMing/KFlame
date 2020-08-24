@@ -5,7 +5,8 @@ import com.china.fortune.global.Log;
 
 public abstract class LoopThread extends Thread {
 	protected boolean bRunning = true;
-	
+	static final public int iOneHourMilSecond = 60 * 60 * 1000;
+	static final public int iThreadSleepTime = 50;
 	// true sleep
 	// false no sleep
 	abstract protected boolean doAction();
@@ -13,7 +14,7 @@ public abstract class LoopThread extends Thread {
 	protected void onClose() {};
 
 	private int iSleepCount = 1;
-	private int iSleepSpan = ConstData.iThreadSleepTime;
+	private int iSleepSpan = iThreadSleepTime;
 	
 	public void setSleep(int iMSecond, int iMilSecondSpan) {
 		setSleepSpan(iMilSecondSpan);
@@ -22,10 +23,10 @@ public abstract class LoopThread extends Thread {
 	
 	private void setSleepSpan(int iMilSecond) {
 		iSleepSpan = iMilSecond;
-		if (iSleepSpan < ConstData.iThreadSleepTime) {
-			iSleepSpan = ConstData.iThreadSleepTime;
-		} else if (iSleepSpan > ConstData.iOneHourMilSecond) {
-			iSleepSpan = ConstData.iOneHourMilSecond;
+		if (iSleepSpan < iThreadSleepTime) {
+			iSleepSpan = iThreadSleepTime;
+		} else if (iSleepSpan > iOneHourMilSecond) {
+			iSleepSpan = iOneHourMilSecond;
 		}
 	}
 	

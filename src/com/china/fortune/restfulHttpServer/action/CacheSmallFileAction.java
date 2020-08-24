@@ -1,7 +1,7 @@
 package com.china.fortune.restfulHttpServer.action;
 
 import com.china.fortune.common.DateAction;
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.UrlParam;
 import com.china.fortune.http.httpHead.HttpResponse;
@@ -37,7 +37,7 @@ public class CacheSmallFileAction implements ServletInterface {
 		if (bData == null) {
 			synchronized (this) {
 				String sFile = getFileName(sResource);
-				bData = FileHelper.readSmallFile(sFile);
+				bData = FileUtils.readSmallFile(sFile);
 				if (bData != null) {
 					cacheObj.put(sResource, bData);
 				} else {

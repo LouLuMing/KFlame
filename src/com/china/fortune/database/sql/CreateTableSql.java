@@ -160,7 +160,7 @@ public class CreateTableSql {
 
         for (int i = 0; i < lsIndex.size(); i++) {
             String sField = lsIndex.get(i);
-            sSqlHead.append("create index index_");
+            sSqlHead.append("create iPort index_");
             sSqlHead.append(sField);
             sSqlHead.append(" on ");
             sSqlHead.append(sTable);

@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.XmlNode;
 
 public class ClassXml {
@@ -30,13 +30,13 @@ public class ClassXml {
             Class<?> cType = f.getType();
             if ((f.getModifiers() & Modifier.STATIC) == 0) {
                 String sData = xml.getChildNodeText(f.getName());
-                if (StringAction.length(sData) > 0) {
+                if (StringUtils.length(sData) > 0) {
                     if (cType == String.class) {
                         f.set(o, sData);
                     } else if (cType == Integer.class || cType == int.class) {
-                        f.setInt(o, StringAction.toInteger(sData));
+                        f.setInt(o, StringUtils.toInteger(sData));
                     } else if (cType == Long.class || cType == long.class) {
-                        f.setLong(o, StringAction.toLong(sData));
+                        f.setLong(o, StringUtils.toLong(sData));
                     }
                 }
             }

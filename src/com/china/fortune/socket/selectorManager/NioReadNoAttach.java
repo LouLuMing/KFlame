@@ -1,14 +1,12 @@
 package com.china.fortune.socket.selectorManager;
 
-import com.china.fortune.socket.bk.NioRWAttach;
-
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 // accept, onaccept (no more cost)
 // first start open selector(call start function)
 // second and accept
-public abstract class NioReadNoAttach extends NioRWAttach {
+public abstract class NioReadNoAttach extends NioRWSerial {
 	abstract protected boolean onRead(SocketChannel sc);
 
 	@Override

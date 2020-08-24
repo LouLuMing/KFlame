@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.os.database.DbAction;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class UpdateSql {
 	private String sTable;
@@ -235,7 +235,7 @@ public class UpdateSql {
 			Field[] lsFields = c.getFields();
 			for (Field f : lsFields) {
 				if ((f.getModifiers() & Modifier.STATIC) == 0) {
-					if (StringAction.compareTo(sField, f.getName()) != 0) {
+					if (StringUtils.compareTo(sField, f.getName()) != 0) {
 						addField(o, f);
 					}
 				}
@@ -254,7 +254,7 @@ public class UpdateSql {
 			Field[] lsFields = c.getFields();
 			for (Field f : lsFields) {
 				if ((f.getModifiers() & Modifier.STATIC) == 0) {
-					if (StringAction.findString(lsField, f.getName()) < 0) {
+					if (StringUtils.findString(lsField, f.getName()) < 0) {
 						addField(o, f);
 					}
 				}

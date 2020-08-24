@@ -7,9 +7,7 @@ import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.reflex.ClassUrlParam;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
-import com.china.fortune.string.StringAction;
-import com.china.fortune.struct.FastList;
+import com.china.fortune.string.StringUtils;
 
 import java.lang.reflect.*;
 // doCrawler
@@ -90,7 +88,7 @@ public abstract class RestfulBaseServlet<E> implements ServletInterface {
 
 	protected String urlDecodeValue(String sValue) {
 		if (bUrlDecode) {
-			return StringAction.urlDecode(sValue, sCharset);
+			return StringUtils.urlDecode(sValue, sCharset);
 		} else {
 			return sValue;
 		}
@@ -103,9 +101,9 @@ public abstract class RestfulBaseServlet<E> implements ServletInterface {
 			if (cType == String.class) {
 				f.set(obj, urlDecodeValue(sValue));
 			} else if (cType == Integer.class || cType == int.class) {
-				f.setInt(obj, StringAction.toInteger(sValue));
+				f.setInt(obj, StringUtils.toInteger(sValue));
 			} else if (cType == Long.class || cType == long.class) {
-				f.setLong(obj, StringAction.toLong(sValue));
+				f.setLong(obj, StringUtils.toLong(sValue));
 			}
 		} catch (Exception e) {
 		}
@@ -168,15 +166,21 @@ public abstract class RestfulBaseServlet<E> implements ServletInterface {
 		return bOK;
 	}
 
+	private boolean bBodyLog = true;
+	protected void setBodyLog(boolean b) {
+		bBodyLog = b;
+	}
 	protected void setHttpBody(HttpServerRequest hReq, HttpResponse hRes, String sBody, String sType) {
 		if (Log.isShow()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(hReq.getResource());
 			sb.append(':');
 
-			String sRequestBody = hReq.getBody(1024);
-			if (sRequestBody != null) {
-				sb.append(sRequestBody);
+			if (bBodyLog) {
+				String sRequestBody = hReq.getBody(1024);
+				if (sRequestBody != null) {
+					sb.append(sRequestBody);
+				}
 			}
 
 			sb.append(':');
@@ -205,8 +209,8 @@ public abstract class RestfulBaseServlet<E> implements ServletInterface {
 		setHttpBody(hReq, hRes, sBody, "application/json");
 	}
 
-	private FastList<RestfulBaseServlet> lsRestServlet = new FastList<RestfulBaseServlet>(0);
-	private FastList<ServletInterface> lsServlet = new FastList<ServletInterface>(0);
+//	private FastList<RestfulBaseServlet> lsRestServlet = new FastList<RestfulBaseServlet>(0);
+//	private FastList<ServletInterface> lsServlet = new FastList<ServletInterface>(0);
 
 //	public void addChildServlet(ServletInterface servlet) {
 //	    if (servlet != null) {
@@ -274,12 +278,6 @@ public abstract class RestfulBaseServlet<E> implements ServletInterface {
 
 	public String showUrlParam(String sUrl) {
         PairBuilder pb = new PairBuilder();
-        if (lsRestServlet.size() > 0) {
-            for (int i = 0; i < lsRestServlet.size(); i++) {
-                RestfulBaseServlet servlet = lsRestServlet.get(i);
-                servlet.addUrlParam(pb);
-            }
-        }
         addUrlParam(pb);
         if (pb.size() > 0) {
 			return UrlParam.together(sUrl, pb.toString());

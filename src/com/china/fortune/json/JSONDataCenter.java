@@ -1,6 +1,5 @@
 package com.china.fortune.json;
 
-import com.china.fortune.global.Log;
 import com.china.fortune.struct.FastList;
 
 public class JSONDataCenter {

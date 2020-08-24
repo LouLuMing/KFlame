@@ -5,7 +5,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class SelectSql {
 	static public String toSumSql(Class<?> c) {
@@ -73,7 +73,7 @@ public class SelectSql {
 				if ((f.getModifiers() & Modifier.STATIC) == 0) {
 					f.setAccessible(true);
 					String sKey = f.getName();
-					if (StringAction.findString(lsExpectKey, sKey) < 0) {
+					if (StringUtils.findString(lsExpectKey, sKey) < 0) {
 						sb.append(f.getName());
 						sb.append(',');
 					}

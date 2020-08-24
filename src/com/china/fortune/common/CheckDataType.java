@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class CheckDataType {
 	static public boolean checkMailAddress(String sText) {
@@ -50,7 +50,7 @@ public class CheckDataType {
 	}
 	
 	static public String hideName(String sName) {
-		if (StringAction.length(sName) > 1) {
+		if (StringUtils.length(sName) > 1) {
 			if (sName.length() == 2) {
 				char[] lsName = sName.toCharArray();
 				StringBuilder sb = new StringBuilder();
@@ -76,7 +76,7 @@ public class CheckDataType {
 	}
 	
 	static public int getBirthYearByIdno(String idno) {
-		return StringAction.toInteger(idno.substring(6,10));
+		return StringUtils.toInteger(idno.substring(6,10));
 	}
 	
 	public static void main(String[] args) {

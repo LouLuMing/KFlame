@@ -5,6 +5,7 @@ import com.china.fortune.database.mySql.MySqlManager;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
+import com.china.fortune.http.webservice.ServletUtils;
 import com.china.fortune.http.webservice.WebServer;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.myant.TargetInterface;
@@ -13,6 +14,7 @@ import com.china.fortune.reflex.ClassRraverse;
 import com.china.fortune.reflex.ClassUtils;
 import com.china.fortune.reflex.ClassXml;
 import com.china.fortune.restfulHttpServer.action.*;
+import com.china.fortune.restfulHttpServer.annotation.AddFilter;
 import com.china.fortune.restfulHttpServer.annotation.AsComponent;
 import com.china.fortune.restfulHttpServer.annotation.AsSchedule;
 import com.china.fortune.restfulHttpServer.annotation.AsServlet;
@@ -80,42 +82,35 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         mySqlManager.free((MySqlDbAction) objForThread);
     }
 
-    protected void scanServlet(String packagePath) {
+    protected void scanAnnotationServlet(String packagePath) {
         List<String> lsData = ClassRraverse.getClassName(packagePath);
         for (String clsName : lsData) {
-            addServlet(clsName);
+            addAnnotationServlet(clsName);
         }
     }
 
-    protected void scanSchedule(String packagePath) {
+    protected void scanAnnotationSchedule(String packagePath) {
         List<String> lsData = ClassRraverse.getClassName(packagePath);
         for (String clsName : lsData) {
-            addSchedule(clsName);
+            addAnnotationSchedule(clsName);
         }
     }
 
-    protected void scanComponent(String packagePath) {
-        List<String> lsData = ClassRraverse.getClassName(packagePath);
+    protected void scanAnnotationComponent(String componentPath) {
+        List<String> lsData = ClassRraverse.getClassName(componentPath);
         for (String clsName : lsData) {
-            addComponent(clsName);
+            addAnnotationComponent(clsName);
         }
     }
 
-    protected void addServlet(String clsName) {
+    protected void addAnnotationServlet(String clsName) {
         try {
             Class<?> cls = Class.forName(clsName);
             if (cls != null) {
                 if (cls.isAnnotationPresent(AsServlet.class)) {
                     if (ServletInterface.class.isAssignableFrom(cls)) {
                         ServletInterface si = (ServletInterface)cls.newInstance();
-                        AsServlet kf = cls.getAnnotation(AsServlet.class);
                         addServlet(si);
-                        if (kf.ipFrequent()) {
-                            addFilter(si, IPFrequentAction.class);
-                        }
-                        if (kf.ipAllow()) {
-                            addFilter(si, IPAllowAction.class);
-                        }
                     } else {
                         Log.logError(clsName + " is not instanceof ServletInterface");
                     }
@@ -128,7 +123,28 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         }
     }
 
-    public void addComponent(String clsName) {
+    protected void addAnnotationFilter() {
+        for (int i = 0; i < lsServlet.size(); i++) {
+            ServletInterface si = lsServlet.get(i);
+            if (si != null) {
+                Class<?> cls = si.getClass();
+                if (cls.isAnnotationPresent(AddFilter.class)) {
+                    AddFilter kf = cls.getAnnotation(AddFilter.class);
+                    Class<?>[] lsClsFilter = kf.lsFilter();
+                    if (lsClsFilter != null) {
+                        for (int j = lsClsFilter.length - 1; j >= 0; j--) {
+                            Class<?> clsFilter = lsClsFilter[j];
+                            if (ServletInterface.class.isAssignableFrom(clsFilter)) {
+                                addFilter(si, clsFilter);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void addAnnotationComponent(String clsName) {
         try {
             Class<?> cls = Class.forName(clsName);
             if (cls != null) {
@@ -144,7 +160,21 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         }
     }
 
-    protected void addSchedule(String clsName) {
+    public void addComponent(String clsName) {
+        try {
+            Class<?> cls = Class.forName(clsName);
+            if (cls != null) {
+                Object obj = cls.newInstance();
+                beansFamily.put(clsName, obj);
+            }
+        } catch (Error e) {
+            Log.logException(e);
+        } catch (Exception e) {
+            Log.logException(e);
+        }
+    }
+
+    protected void addAnnotationSchedule(String clsName) {
         try {
             Class<?> cls = Class.forName(clsName);
             if (cls != null) {
@@ -165,9 +195,9 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         }
     }
 
-    protected void injectAutowired(BeansFamily bf) {
+    protected void injectServletAutowired(BeansFamily bf) {
         for (int i = lsServlet.size() - 1; i >= 0; i--) {
-            ServletInterface servlet = lsServlet.get(i).getHost();
+            ServletInterface servlet = ServletUtils.getFinalHost(lsServlet.get(i));
             bf.injectFieldAutowired(servlet);
         }
     }
@@ -201,10 +231,11 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         addIPFrequentServelt(new InterfaceAction(this));
 
         if (sServlet != null) {
-            scanServlet(sServlet);
+            scanAnnotationServlet(sServlet);
         }
 
         initHitCache();
+        addAnnotationFilter();
         addStatisticsServlet();
     }
 
@@ -212,18 +243,17 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         beansFamily.put(beansFamily);
         beansFamily.put(mySqlManager);
         beansFamily.put(msgServer);
-
+        if (sScanPath != null) {
+            scanAnnotationComponent(sScanPath);
+        }
         beansFamily.initHitCache();
         beansFamily.injectSelfAutowired();
-        if (sScanPath != null) {
-            scanComponent(sScanPath);
-        }
 
         addAllServlet(sScanPath);
-        injectAutowired(beansFamily);
+        injectServletAutowired(beansFamily);
 
         if (sScanPath != null) {
-            scanSchedule(sScanPath);
+            scanAnnotationSchedule(sScanPath);
         }
         scheduleManager.injectBeans(beansFamily);
 
@@ -237,7 +267,7 @@ public class WebEnterPoint extends WebServer implements DataSaveInterface, Targe
         return mySqlManager.init(sServer, sDBName, sUser, sPasswd);
     }
 
-    public boolean doAction(XmlNode cfg, ProcessAction self) {
+    public boolean doAction(ProcessAction self, XmlNode cfg) {
         WebProp wc = new WebProp();
         ClassXml.toObject(cfg, wc);
         if (ClassUtils.checkNoNull(wc)) {

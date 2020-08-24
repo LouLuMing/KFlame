@@ -1,10 +1,8 @@
 package com.china.fortune.http.property;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.struct.FastHashMap;
-
-import java.util.HashMap;
 
 public final class HttpProp {
 	static final public int iMaxContentLenLimited = 64 * 1024 * 1024;
@@ -53,7 +51,7 @@ public final class HttpProp {
     }
 
     static public String getContentType(String sType) {
-        return mapContentType.get(sType);
+        return mapContentType.get(sType.toLowerCase());
     }
 
     static public String getError(int err) {
@@ -67,7 +65,7 @@ public final class HttpProp {
     }
 
     static public String getContentTypeByFile(String sFileName) {
-        String sFileExtension = FileHelper.getFileExtension(sFileName);
+        String sFileExtension = FileUtils.getFileExtension(sFileName);
         if (sFileExtension != null) {
             return getContentType(sFileExtension);
         }

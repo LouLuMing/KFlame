@@ -3,6 +3,7 @@ package com.china.fortune.http.webservice.servlet;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.UrlParam;
 import com.china.fortune.http.server.HttpServerRequest;
+import com.china.fortune.http.webservice.servlet.RestfulBaseServlet;
 import com.china.fortune.json.JSONObject;
 
 public class JSONPServlet extends RestfulBaseServlet<Object> {

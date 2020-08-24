@@ -6,28 +6,23 @@ import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
 import com.china.fortune.restfulHttpServer.ResultJson;
-import com.china.fortune.socket.IPHelper;
+import com.china.fortune.socket.IPUtils;
 import com.china.fortune.timecontrol.AceessLimitTime;
 
 public class IPFrequentAction implements ServletInterface {
-	static private HashSet<Integer> lsAllowed = new HashSet<Integer>();
+	private HashSet<Integer> lsAllowed = new HashSet<Integer>();
 
-	static public void addAllowIP(int iIP) {
+	public void addAllowIP(int iIP) {
 		lsAllowed.add(iIP);
 	}
 
-	static public void addAllowIP(String sIP) {
-		lsAllowed.add(IPHelper.Ip2Int(sIP));
+	public void addAllowIP(String sIP) {
+		lsAllowed.add(IPUtils.Ip2Int(sIP));
 	}
 
-	static public boolean isAllow(int iRemoteIP) {
-		if (lsAllowed.contains(iRemoteIP)) {
-			return true;
-		} else {
-			return false;
-		}
+	public boolean isAllow(int iRemoteIP) {
+		return lsAllowed.contains(iRemoteIP);
 	}
 
 	// 15+2 = 17, 256second, allow 64 times
@@ -47,12 +42,10 @@ public class IPFrequentAction implements ServletInterface {
 		hRes.setBody(ResultJson.sJsonFrequentAccessLimit, "application/json");
 	}
 
-	static final private int ciLoopIP = IPHelper.Ip2Int("127.0.0.1");
-
 	@Override
 	public RunStatus doAction(HttpServerRequest hReq, HttpResponse hRes, Object objForThread) {
 		int iRemoteIP = hReq.getRemoteIP();
-		if (iRemoteIP == ciLoopIP || isAllow(iRemoteIP) || ipFrequent.isAllowAccess(iRemoteIP)) {
+		if (isAllow(iRemoteIP) || ipFrequent.isAllowAccess(iRemoteIP)) {
 			return RunStatus.isOK;
 		} else {
 			setErrorBody(hReq, hRes);

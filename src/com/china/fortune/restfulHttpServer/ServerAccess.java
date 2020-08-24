@@ -1,14 +1,14 @@
 package com.china.fortune.restfulHttpServer;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.UrlBuilder;
 import com.china.fortune.http.httpHead.HttpResponse;
-import com.china.fortune.http.HttpSendAndRecv;
+import com.china.fortune.http.HttpUtils;
 import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.os.file.PathUtils;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class ServerAccess {
 	private String sBaseIP = "127.0.0.1";
@@ -80,11 +80,11 @@ public class ServerAccess {
 	
 	public boolean parsePort(String sKey) {
 		String sFile = PathUtils.getCurrentDataPath(true) + "myAnt.xml";
-		String sXml = FileHelper.readSmallFile(sFile, "utf-8");
+		String sXml = FileUtils.readSmallFile(sFile, "utf-8");
 		if (sXml != null) {
-			String sPort = StringAction.findBetween(sXml, sKey, sKey);
+			String sPort = StringUtils.findBetween(sXml, sKey, sKey);
 			if (sPort != null) {
-				iServerPort = StringAction.toInteger(sPort);
+				iServerPort = StringUtils.toInteger(sPort);
 				if (bShowLog) {
 					Log.logClass("iServerPort:" + iServerPort);
 				}
@@ -96,7 +96,7 @@ public class ServerAccess {
 
 	public String postAndShow(String sPost, String sBody) {
 		String sUrl = sBaseURL + sPost;
-		String sRecv = HttpSendAndRecv.doPost(sUrl, sBody);
+		String sRecv = HttpUtils.post(sUrl, sBody);
 		if (bShowLog) {
 			Log.logClass(sUrl + ":" + sBody + ":" + sRecv);
 		}
@@ -105,12 +105,12 @@ public class ServerAccess {
 	
 	public HttpResponse get(String sGet) {
 		String sUrl = sBaseURL + sGet;
-		return HttpSendAndRecv.doGetInner(sUrl);
+		return HttpUtils.getInner(sUrl);
 	}
 
     public HttpResponse post(String sGet, String sBody, String sType) {
         String sUrl = sBaseURL + sGet;
-        return HttpSendAndRecv.doPostInner(sUrl, sBody, sType);
+        return HttpUtils.postInner(sUrl, sBody, sType);
     }
 
 	public String getAndShow(Class<?> servlet, Object param) {
@@ -132,7 +132,7 @@ public class ServerAccess {
 
 	public String getAndShow(String sGet) {
 		String sUrl = sBaseURL + sGet;
-		String sRecv = HttpSendAndRecv.doGet(sUrl);
+		String sRecv = HttpUtils.get(sUrl);
 		if (bShowLog) {
 			Log.logClass(sUrl + ":" + sRecv);
 		}

@@ -7,8 +7,7 @@ import com.china.fortune.global.Log;
 import com.china.fortune.http.UrlBuilder;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public abstract class RestfulStringServlet extends RestfulBaseServlet<String[]> {
 	protected CheckKeys ksKey = new CheckKeys();
@@ -68,11 +67,11 @@ public abstract class RestfulStringServlet extends RestfulBaseServlet<String[]> 
 	}
 
 	protected int getInt(String[] lsValues, String sKey) {
-		return StringAction.toInteger(getString(lsValues, sKey));
+		return StringUtils.toInteger(getString(lsValues, sKey));
 	}
 	
 	protected long getLong(String[] lsValues, String sKey) {
-		return StringAction.toLong(getString(lsValues, sKey));
+		return StringUtils.toLong(getString(lsValues, sKey));
 	}
 	
 	protected String getString(String[] lsValues, String sKey) {
@@ -122,9 +121,9 @@ public abstract class RestfulStringServlet extends RestfulBaseServlet<String[]> 
 						if (cType == String.class) {
 							f.set(o, sValue);
 						} else if (cType == Integer.class || cType == int.class) {
-							f.set(o, StringAction.toInteger(sValue));
+							f.set(o, StringUtils.toInteger(sValue));
 						} else if (cType == Long.class || cType == long.class) {
-							f.set(o, StringAction.toLong(sValue));
+							f.set(o, StringUtils.toLong(sValue));
 						}
 					}
 				}
@@ -170,31 +169,4 @@ public abstract class RestfulStringServlet extends RestfulBaseServlet<String[]> 
 		return showUrlParam(sUrl, null);
 	}
 
-	public void valuesToJson(JSONObject json, String[] lsValues) {
-		if (ksKey.lsKey != null) {
-			for (String field : ksKey.lsKey) {
-				json.put(field, getString(lsValues, field));
-			}
-		}
-		if (ksUnKey.lsKey != null) {
-			for (String field : ksUnKey.lsKey) {
-				json.put(field, getString(lsValues, field));
-			}
-		}
-	}
-
-	public String classToUrl(Class<?> cls, JSONObject json) {
-		UrlBuilder ub = new UrlBuilder(ActionToUrl.toUrl(cls));
-		if (ksKey.lsKey != null) {
-			for (String field : ksKey.lsKey) {
-				ub.add(field, json.optString(field));
-			}
-		}
-		if (ksUnKey.lsKey != null) {
-			for (String field : ksUnKey.lsKey) {
-				ub.add(field, json.optString(field));
-			}
-		}
-		return ub.toString();
-	}
 }

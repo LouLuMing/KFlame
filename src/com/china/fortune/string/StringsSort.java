@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.string.StringAction;
 
 public class StringsSort {
 	
@@ -17,7 +16,7 @@ public class StringsSort {
 		for (int i = 0; i < keys.size(); i++) {
 			String key = keys.get(i);
 			String value = map.get(key);
-			if (StringAction.length(value) > 0) {
+			if (StringUtils.length(value) > 0) {
 				sb.append(key);
 				sb.append('=');
 				sb.append(value);
@@ -38,7 +37,7 @@ public class StringsSort {
 		for (int i = 0; i < keys.size(); i++) {
 			String key = keys.get(i);
 			String value = jsonObject.optString(key);
-			if (StringAction.length(value) > 0) {
+			if (StringUtils.length(value) > 0) {
 				sb.append(key);
 				sb.append('=');
 				sb.append(value);

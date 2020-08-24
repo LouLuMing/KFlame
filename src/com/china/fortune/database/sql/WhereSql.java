@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
 
 public class WhereSql {
 	private String sOperation = "and";

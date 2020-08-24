@@ -2,7 +2,7 @@ package com.china.fortune.proxy.host;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.os.file.PathUtils;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -26,7 +26,7 @@ public class Host {
     }
 
     public boolean isActive() {
-        return iError < 3;
+        return iError < 16;
     }
 
     public String getLocation(String sSubResource) {
@@ -35,7 +35,7 @@ public class Host {
             sSubResource = sSubResource.substring(0, index);
         }
         if (sSubResource.length() > 1) {
-            sSubResource = StringAction.urlDecode(sSubResource, "utf-8");
+            sSubResource = StringUtils.urlDecode(sSubResource, "utf-8");
             if (File.separatorChar != '/') {
                 sSubResource = sSubResource.replace('/', File.separatorChar);
             }
@@ -60,7 +60,7 @@ public class Host {
                 if (iIndex > 0) {
                     sServer = sTmp.substring(0, iIndex);
                     String sPort = sTmp.substring(iIndex+1);
-                    iPort = StringAction.toInteger(sPort);
+                    iPort = StringUtils.toInteger(sPort);
                 } else {
                     sServer = sTmp;
                 }
@@ -71,11 +71,25 @@ public class Host {
         }
     }
 
+    public void update(String path, boolean cache, boolean gzip) {
+        if (path.startsWith("http")
+                || path.startsWith("ws")) {
+            sPath = path;
+            parseURL(path);
+        } else {
+            sPath = PathUtils.getFullPath(path);
+            sPath = PathUtils.delSeparator(path);
+            isCache = cache;
+            isGZip = gzip;
+            isaRemote = null;
+        }
+        iError = 0;
+    }
     public void update(String path) {
         if (path.startsWith("http")
                 || path.startsWith("ws")) {
-            parseURL(path);
             sPath = path;
+            parseURL(path);
         } else {
             sPath = PathUtils.getFullPath(path);
             sPath = PathUtils.delSeparator(path);

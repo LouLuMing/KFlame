@@ -1,7 +1,7 @@
 package com.china.fortune.database;
 
 import com.china.fortune.os.log.FileLogSwitchAction;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class SqlLog {
 	public interface SqlInterface {
@@ -37,8 +37,8 @@ public class SqlLog {
 	static public void log(String sSql) {
 		obj.log(sSql);
 		if (onSqlAction != null) {
-			if (StringAction.startWithIgnoreCase(sSql, "insert") || StringAction.startWithIgnoreCase(sSql, "update")
-					|| StringAction.startWithIgnoreCase(sSql, "delete")) {
+			if (StringUtils.startWithIgnoreCase(sSql, "insert") || StringUtils.startWithIgnoreCase(sSql, "update")
+					|| StringUtils.startWithIgnoreCase(sSql, "delete")) {
 				onSqlAction.onSql(sSql);
 			}
 		}

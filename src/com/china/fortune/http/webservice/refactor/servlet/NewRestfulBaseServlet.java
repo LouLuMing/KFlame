@@ -9,7 +9,7 @@ import com.china.fortune.http.webservice.refactor.WebService;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.reflex.ClassUrlParam;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.FastList;
 
 import java.lang.reflect.Field;
@@ -40,7 +40,7 @@ public abstract class NewRestfulBaseServlet<E> implements ServletInterface {
 
 	protected String urlDecodeValue(String sValue) {
 		if (bUrlDecode) {
-			return StringAction.urlDecode(sValue, sCharset);
+			return StringUtils.urlDecode(sValue, sCharset);
 		} else {
 			return sValue;
 		}
@@ -53,9 +53,9 @@ public abstract class NewRestfulBaseServlet<E> implements ServletInterface {
 			if (cType == String.class) {
 				f.set(obj, urlDecodeValue(sValue));
 			} else if (cType == Integer.class || cType == int.class) {
-				f.setInt(obj, StringAction.toInteger(sValue));
+				f.setInt(obj, StringUtils.toInteger(sValue));
 			} else if (cType == Long.class || cType == long.class) {
-				f.setLong(obj, StringAction.toLong(sValue));
+				f.setLong(obj, StringUtils.toLong(sValue));
 			}
 		} catch (Exception e) {
 		}

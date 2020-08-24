@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.struct.IntObject;
 
 public class CountMap {
@@ -89,7 +89,7 @@ public class CountMap {
 
 	private void showItem(Entry<String, IntObject> e) {
 		int iCount = e.getValue().get();
-		Log.log(e.getKey() + "\t" + String.valueOf(iCount) + "\t" + StringAction.toPercent(iCount, iTotal));
+		Log.log(e.getKey() + "\t" + String.valueOf(iCount) + "\t" + StringUtils.toPercent(iCount, iTotal));
 	}
 
 	public void showSortLogHead(boolean bAsc, int iLimit) {
@@ -170,9 +170,9 @@ public class CountMap {
 			Collections.sort(lsNodes, new Comparator<Entry<String, IntObject>>() {
 				public int compare(Entry<String, IntObject> o1, Entry<String, IntObject> o2) {
 					if (bAsc) {
-						return StringAction.compareTo(o1.getKey(), o2.getKey());
+						return StringUtils.compareTo(o1.getKey(), o2.getKey());
 					} else {
-						return StringAction.compareTo(o2.getKey(), o1.getKey());
+						return StringUtils.compareTo(o2.getKey(), o1.getKey());
 					}
 				}
 			});

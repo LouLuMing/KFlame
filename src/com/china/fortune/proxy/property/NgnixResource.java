@@ -5,6 +5,7 @@ public class NgnixResource {
 
     static public String sAddUrl = "/add";
     static public String sDelUrl = "/del";
+    static public String sCacheUrl = "/cache";
     static public String sShowUrl = "/show";
     static public String sEchoUrl = "/echo";
 }

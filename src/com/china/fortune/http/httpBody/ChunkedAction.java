@@ -3,7 +3,7 @@ package com.china.fortune.http.httpBody;
 import com.china.fortune.common.ByteArrayInputStream;
 import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.socket.LineSocketAction;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class ChunkedAction {
 	static final int iMaxContentLenLimited = 64 * 1024 * 1024;
@@ -15,7 +15,7 @@ public class ChunkedAction {
 			int iChunkCount = 0;
 			do {
 				String sLine = lSA.readLine(sCharset);
-				iChunkLen = StringAction.hexToInt(sLine);
+				iChunkLen = StringUtils.hexToInt(sLine);
 				if (iChunkLen > 0 && iChunkLen < HttpProp.iMaxChunkedLenLimited) {
 					byte[] pData = new byte[iChunkLen];
 					if (lSA.read(pData) > 0) {

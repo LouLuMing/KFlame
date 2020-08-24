@@ -2,7 +2,7 @@ package com.china.fortune.http.httpHead;
 
 import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.ByteParser;
 
 import java.nio.ByteBuffer;
@@ -39,11 +39,11 @@ public class HttpRequest extends HttpHeader {
     public boolean parseRequest(ByteBuffer bb, int iStart) {
         int iPos = ByteBufferUtils.indexOf(bb, iStart, bb.position() +1, (byte) ' ');
         if (iPos > 0) {
-            sMethod = StringAction.newString(bb, iStart, iPos);
+            sMethod = StringUtils.newString(bb, iStart, iPos);
             iStart = iPos + 1;
             iPos = ByteBufferUtils.indexOf(bb, iStart, bb.position() +1, (byte) ' ');
             if (iPos > 0) {
-                sResource = StringAction.newString(bb, iStart, iPos);
+                sResource = StringUtils.newString(bb, iStart, iPos);
                 return true;
             }
         }
@@ -53,11 +53,11 @@ public class HttpRequest extends HttpHeader {
     public boolean parseRequest(byte[] bData, int iStart) {
         int iPos = ByteParser.indexOf(bData, iStart, (byte) ' ');
         if (iPos > 0) {
-            sMethod = StringAction.newString(bData, iStart, iPos);
+            sMethod = StringUtils.newString(bData, iStart, iPos);
             iStart = iPos + 1;
             iPos = ByteParser.indexOf(bData, iStart, (byte) ' ');
             if (iPos > 0) {
-                sResource = StringAction.newString(bData, iStart, iPos);
+                sResource = StringUtils.newString(bData, iStart, iPos);
                 return true;
             }
         }
@@ -65,7 +65,7 @@ public class HttpRequest extends HttpHeader {
     }
 
     public boolean parseRequest(String sRequest) {
-        String[] lsText = StringAction.split(sRequest, ' ');
+        String[] lsText = StringUtils.split(sRequest, ' ');
         if (lsText != null && lsText.length > 2) {
             sMethod = lsText[0];
             sResource = lsText[1];
@@ -123,11 +123,11 @@ public class HttpRequest extends HttpHeader {
                     sResource = csRootResource;
                 }
                 if (sTmp != null) {
-                    String sIP = StringAction.getBefore(sTmp, ":");
-                    String sPort = StringAction.getAfter(sTmp, ":");
+                    String sIP = StringUtils.getBefore(sTmp, ":");
+                    String sPort = StringUtils.getAfter(sTmp, ":");
 
                     if (sPort != null) {
-                        iPort = StringAction.toInteger(sPort);
+                        iPort = StringUtils.toInteger(sPort);
                     }
                     setHostAndHeader(sIP, iPort);
                 }

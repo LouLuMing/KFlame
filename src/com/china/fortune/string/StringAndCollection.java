@@ -7,9 +7,9 @@ public class StringAndCollection {
     static public HashSet<Integer> toHashSet(String sData, char dot) {
         HashSet<Integer> lsData = new HashSet<Integer>();
         if (sData != null) {
-            String[] lsInt = StringAction.split(sData, dot);
+            String[] lsInt = StringUtils.split(sData, dot);
             for (String s : lsInt) {
-                lsData.add(StringAction.toInteger(s));
+                lsData.add(StringUtils.toInteger(s));
             }
         }
         return lsData;
@@ -18,9 +18,9 @@ public class StringAndCollection {
     static public ArrayList<Integer> toArrayList(String sData, char dot) {
         ArrayList<Integer> lsData = new ArrayList<Integer>();
         if (sData != null) {
-            String[] lsInt = StringAction.split(sData, dot);
+            String[] lsInt = StringUtils.split(sData, dot);
             for (String s : lsInt) {
-                lsData.add(StringAction.toInteger(s));
+                lsData.add(StringUtils.toInteger(s));
             }
         }
         return lsData;

@@ -5,7 +5,7 @@ import java.lang.reflect.Modifier;
 
 import com.china.fortune.easy.Int2Struct;
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class ClassSync {
 	static public void syncExcept(Object src, Object des, String sExceptField) {
@@ -16,7 +16,7 @@ public class ClassSync {
 				Field[] lsFields = cDes.getFields();
 				for (Field f : lsFields) {
 					if ((f.getModifiers() & Modifier.STATIC) == 0) {
-						if (StringAction.compareTo(sExceptField, f.getName()) != 0) {
+						if (StringUtils.compareTo(sExceptField, f.getName()) != 0) {
 							f.setAccessible(true);
 							f.set(des, f.get(src));
 						}
@@ -36,7 +36,7 @@ public class ClassSync {
 				Field[] lsFields = cDes.getFields();
 				for (Field f : lsFields) {
 					if ((f.getModifiers() & Modifier.STATIC) == 0) {
-						if (StringAction.findString(lsExceptField, f.getName()) < 0) {
+						if (StringUtils.findString(lsExceptField, f.getName()) < 0) {
 							f.setAccessible(true);
 							f.set(des, f.get(src));
 						}
@@ -96,7 +96,7 @@ public class ClassSync {
 				Field[] lsFields = cDes.getFields();
 				for (Field f : lsFields) {
 					if ((f.getModifiers() & Modifier.STATIC) == 0) {
-						if (StringAction.findString(lsField, f.getName()) >= 0) {
+						if (StringUtils.findString(lsField, f.getName()) >= 0) {
 							f.setAccessible(true);
 							f.set(des, f.get(src));
 						}

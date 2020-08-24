@@ -9,7 +9,7 @@ import com.china.fortune.common.ByteAction;
 import com.china.fortune.global.ConstData;
 import com.china.fortune.global.Log;
 import com.china.fortune.reflex.ClassSerialize;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class WriteFileAction {
 	private OutputStream fs = null;
@@ -91,7 +91,7 @@ public class WriteFileAction {
 
 	public void writeString(String sData) {
 		// Log.logClass(sData);
-		byte[] bData = StringAction.getBytes(sData, ConstData.sFileCharset);
+		byte[] bData = StringUtils.getBytes(sData, ConstData.sFileCharset);
 		writeBytes(bData);
 	}
 

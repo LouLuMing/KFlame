@@ -1,0 +1,14 @@
+<project name="myFortune" start="TcpRouter,ProxyTarget" basedir="." logtype="null">
+	<target name="ProxyTarget" class="com.china.fortune.proxy.ProxyServer">
+		<localport>8989</localport>
+		<resources>
+			<resource url="/apk">/mnt/sdb/work/proxy</resource>
+			<resource url="/showhttp">http://20.21.1.133:8990</resource>
+		</resources>
+	</target>
+	<target name="TcpRouter" class="com.china.fortune.tcpRouter.TcpRouter">
+		<inPort>3306</inPort>
+		<outServer>127.0.0.1</outServer>
+		<outPort>3306</outPort>
+	</target>
+</project>

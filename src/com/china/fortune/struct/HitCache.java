@@ -1,7 +1,7 @@
 package com.china.fortune.struct;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class HitCache {
     private int[] lsHashHit = null;
@@ -17,12 +17,12 @@ public class HitCache {
         }
         lsHashCode = new int[lsData.size()];
         for (int i = 0; i < lsData.size(); i++) {
-            lsHashCode[i] = StringAction.calHashCode(lsData.get(i), span);
+            lsHashCode[i] = StringUtils.calHashCode(lsData.get(i), span);
         }
         for (int i = 0; i < lsData.size(); i++) {
             String sData = lsData.get(i);
             if (sData != null) {
-                int iCache1 = StringAction.calHashCode(sData, iSpan) % lsHashHit.length;
+                int iCache1 = StringUtils.calHashCode(sData, iSpan) % lsHashHit.length;
                 if (lsHashHit[iCache1] == -1) {
                     lsHashHit[iCache1] = i;
                 } else {
@@ -34,30 +34,34 @@ public class HitCache {
 
     public int calHashCode(String s) {
         if (s != null) {
-            return StringAction.calHashCode(s, iSpan) % lsHashHit.length;
+            return StringUtils.calHashCode(s, iSpan) % lsHashHit.length;
         } else {
             return -1;
         }
     }
 
     public boolean checkHashCode(int index, String s) {
-        int iHashCode = StringAction.calHashCode(s, iSpan);
+        int iHashCode = StringUtils.calHashCode(s, iSpan);
         return lsHashCode[index] == iHashCode;
     }
 
-    public String calUsage() {
+    public int getCapacity() {
+        return lsHashHit.length;
+    }
+
+    public int getUsage() {
         int iUsage = 0;
         for (int i : lsHashHit) {
             if (i >= 0) {
                 iUsage++;
             }
         }
-        return StringAction.toPercent(iUsage, lsHashHit.length);
+        return iUsage;
     }
 
     public int find(String s) {
         if (s != null) {
-            int iHashCode = StringAction.calHashCode(s, iSpan);
+            int iHashCode = StringUtils.calHashCode(s, iSpan);
             int iCache1 = iHashCode % lsHashHit.length;
             int index = lsHashHit[iCache1];
             if (index >= 0 && lsHashCode[index] == iHashCode) {

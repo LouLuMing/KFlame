@@ -4,27 +4,26 @@ import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.proxy.ProxyManager;
 import com.china.fortune.proxy.property.NgnixResource;
+import com.china.fortune.proxy.servlet.RefreshCacheServlet;
 import com.china.fortune.proxy.servlet.ShowPathServlet;
 import com.china.fortune.restfulHttpServer.ResultJson;
 import com.china.fortune.proxy.servlet.AddPathServlet;
 import com.china.fortune.proxy.servlet.DelPathServlet;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class CommandAction {
-    // /xginx/add
-    // /xginx/del
-    // /xginx/show
+    // /proxy/add
+    // /proxy/del
+    // /proxy/cache
+    // /proxy/show
 
-    private AddPathServlet addPathServlet;
-    private DelPathServlet delPathServlet;
-    private ShowPathServlet showPathServlet;
+    private AddPathServlet addPathServlet = new AddPathServlet();
+    private DelPathServlet delPathServlet = new DelPathServlet();
+    private ShowPathServlet showPathServlet = new ShowPathServlet();
+    private RefreshCacheServlet refreshCacheServlet = new RefreshCacheServlet();
     private int iPrevHead = 0;
-    public CommandAction(ProxyManager am) {
-        addPathServlet = new AddPathServlet(am);
-        delPathServlet = new DelPathServlet(am);
-        showPathServlet = new ShowPathServlet(am);
+    public CommandAction() {
         iPrevHead = NgnixResource.sPrevHead.length();
     }
 
@@ -33,16 +32,18 @@ public class CommandAction {
     }
 
     public void doAction(String sTag, HttpServerRequest hReq, HttpResponse hRes) {
-        if (StringAction.compareTo(sTag, iPrevHead, NgnixResource.sAddUrl)) {
+        if (StringUtils.compareTo(sTag, iPrevHead, NgnixResource.sAddUrl)) {
             addPathServlet.doAction(hReq, hRes, null);
-        } else if (StringAction.compareTo(sTag, iPrevHead, NgnixResource.sDelUrl)) {
+        } else if (StringUtils.compareTo(sTag, iPrevHead, NgnixResource.sDelUrl)) {
             delPathServlet.doAction(hReq, hRes, null);
-        } else if (StringAction.compareTo(sTag, iPrevHead, NgnixResource.sShowUrl)) {
+        } else if (StringUtils.compareTo(sTag, iPrevHead, NgnixResource.sCacheUrl)) {
+            refreshCacheServlet.doAction(hReq, hRes, null);
+        } else if (StringUtils.compareTo(sTag, iPrevHead, NgnixResource.sShowUrl)) {
             showPathServlet.doAction(hReq, hRes, null);
-        } else if (StringAction.compareTo(sTag, iPrevHead, NgnixResource.sEchoUrl)) {
+        } else if (StringUtils.compareTo(sTag, iPrevHead, NgnixResource.sEchoUrl)) {
             hRes.setResponse(200);
             hRes.setBody(hReq.getByteBody());
-        }else {
+        } else {
             JSONObject json = new JSONObject();
             ResultJson.fillError(json, "miss " + sTag);
             hRes.setBody(json.toString(), HttpProp.getContentType("json"));

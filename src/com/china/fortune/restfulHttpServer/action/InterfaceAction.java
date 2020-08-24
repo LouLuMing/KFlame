@@ -3,6 +3,7 @@ package com.china.fortune.restfulHttpServer.action;
 import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
+import com.china.fortune.http.webservice.ServletUtils;
 import com.china.fortune.http.webservice.WebServer;
 import com.china.fortune.http.webservice.servlet.RestfulBaseServlet;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
@@ -34,7 +35,7 @@ public class InterfaceAction extends RestfulBaseServlet<Object> {
         for (String sTag : webServer.sortTag()) {
             ServletInterface si = webServer.getServlet(sTag);
             if (si != null) {
-                ServletInterface host = si.getHost();
+                ServletInterface host = ServletUtils.getFinalHost(si);
                 String sUrl = sTag;
                 if (host instanceof RestfulBaseServlet) {
                     sUrl = ((RestfulBaseServlet<?>) host).showUrlParam(sTag);

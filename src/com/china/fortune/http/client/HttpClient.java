@@ -6,12 +6,14 @@ import com.china.fortune.http.httpBody.HttpBodyInterface;
 import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.httpHead.HttpRequest;
 import com.china.fortune.http.httpHead.HttpResponse;
+import com.china.fortune.http.httpHead.HttpFormData;
 import com.china.fortune.socket.LineSocketAction;
 import com.china.fortune.socket.SocketUtils;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class HttpClient {
 	protected SocketUtils socketUtils = new SocketUtils();
@@ -86,12 +88,27 @@ public class HttpClient {
 		} while (true);
 	}
 
+	private boolean writeHttpBody(LineSocketAction lSA, HttpRequest hrRequest) {
+		if (hrRequest instanceof HttpFormData) {
+			ArrayList<byte[]> lsObj = ((HttpFormData)hrRequest).getBodyList();
+			if (lsObj != null) {
+				for (byte[] pBody : lsObj) {
+					lSA.writeNoFlush(pBody);
+				}
+			}
+			lSA.flush();
+			return true;
+		} else {
+			byte[] pBody = hrRequest.getByteBody();
+			return (pBody == null || lSA.write(pBody));
+		}
+	}
+
 	public HttpResponse sendDataAndRecvHead(LineSocketAction lSA, HttpRequest hrRequest) {
 		HttpResponse hrResponce = null;
 		String sHeader = hrRequest.toString();
 		if (lSA.writeNoFlush(sHeader, ConstData.sHttpCharset)) {
-			byte[] pBody = hrRequest.getByteBody();
-			if (pBody == null || lSA.write(pBody)) {
+			if (writeHttpBody(lSA, hrRequest)) {
 				String sLine = lSA.readLine(ConstData.sHttpCharset);
 				if (sLine != null) {
 					hrResponce = new HttpResponse();

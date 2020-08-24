@@ -1,7 +1,7 @@
 package com.china.fortune.file;
 
 import com.china.fortune.easy.String2Struct;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public class IniFileUtils {
         if (rlfa.open(sFile)) {
             do {
                 String sLine = rlfa.readLine();
-                if (StringAction.length(sLine) > 0) {
+                if (StringUtils.length(sLine) > 0) {
                     if (!sLine.startsWith("//")) {
                         int index = sLine.indexOf('=');
                         if (index > 0) {
@@ -46,7 +46,7 @@ public class IniFileUtils {
         if (rlfa.open(sFile)) {
             do {
                 String sLine = rlfa.readLine();
-                if (StringAction.length(sLine) > 0) {
+                if (StringUtils.length(sLine) > 0) {
                     int index = sLine.indexOf('=');
                     if (index > 0) {
                         String sTag = sLine.substring(0, index).trim();

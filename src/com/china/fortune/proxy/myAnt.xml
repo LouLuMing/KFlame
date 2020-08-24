@@ -5,7 +5,7 @@
 		<resources>
 			<resource url="/visitor-wechat">/home/yiqi/zjrc/visitor-api</resource>
 			<resource url="/account">http://127.0.0.1:8700;http://127.0.0.1:8900</resource>
-			<resource url="/">/home/yiqi/zjrc/visitor-wechat/dist</resource>
+			<resource url="/" cache="1" gzip="1">/home/yiqi/zjrc/visitor-wechat/dist</resource>
 		</resources>
 	</target>
 </project>

@@ -1,6 +1,7 @@
 package com.china.fortune.struct;
 
 import com.china.fortune.global.Log;
+import com.china.fortune.string.StringUtils;
 
 public class HitCacheManager {
     static final private int ciMaxCache = 8;
@@ -24,7 +25,7 @@ public class HitCacheManager {
             }
 
             lsCache[iCache++] = hc;
-            if (lsClone.size() == lsClone.countNull()) {
+            if (lsClone.isEmpty()) {
                 iRes = iCache;
                 break;
             }
@@ -49,12 +50,23 @@ public class HitCacheManager {
     }
 
     public void showUsage() {
+        int iTotal = 0;
+        for (int i = 0; i < iCache; i++) {
+            iTotal += lsCache[i].getUsage();
+        }
+
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < iCache; i++) {
             sb.append('[');
             sb.append(i);
             sb.append(':');
-            sb.append(lsCache[i].calUsage());
+
+            String sUsage = StringUtils.toPercent(lsCache[i].getUsage(), iTotal);
+            sb.append(sUsage);
+            sb.append(',');
+            sUsage = StringUtils.toPercent(lsCache[i].getUsage(), lsCache[i].getCapacity());
+            sb.append(sUsage);
+
             sb.append("] ");
         }
         sb.setLength(sb.length() - 1);

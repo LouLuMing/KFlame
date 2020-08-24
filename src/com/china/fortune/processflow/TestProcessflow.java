@@ -19,7 +19,7 @@ public class TestProcessflow implements TargetInterface {
 		}
 	}
 	
-	public boolean doAction(XmlNode cfg , ProcessAction proc) {
+	public boolean doAction(ProcessAction proc, XmlNode cfg) {
 		Log.log("processManager start");
 		
 		ProcessManager obj = new ProcessManager();

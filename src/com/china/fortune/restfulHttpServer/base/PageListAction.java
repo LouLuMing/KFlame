@@ -10,7 +10,7 @@ import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONArray;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.restfulHttpServer.ResultJson;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public abstract class PageListAction extends RestfulStringServlet {
 	protected String sSelectSql = null;
@@ -66,14 +66,14 @@ public abstract class PageListAction extends RestfulStringServlet {
 			sb.append(ob.toSql());
 		}
 		String pageNo = getString(lsValues, "pageNo");
-		if (StringAction.length(pageNo) > 0) {
-			sb.append(MySqlLimit.toSql(StringAction.toInteger(pageNo) * iPageSize, iPageSize));
+		if (StringUtils.length(pageNo) > 0) {
+			sb.append(MySqlLimit.toSql(StringUtils.toInteger(pageNo) * iPageSize, iPageSize));
 		} else {
 			sb.append(MySqlLimit.toSql(iPageSize * 10));
 		}
 
 		String sSql = sb.toString();
-		if (StringAction.length(sSql) > 0) {
+		if (StringUtils.length(sSql) > 0) {
 			JSONArray jarr = DatabaseJson.toJSONArray(dbObj, sSql);
 			JSONObject data = new JSONObject();
 			data.put("list", jarr);

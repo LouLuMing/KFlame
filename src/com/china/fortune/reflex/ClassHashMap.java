@@ -1,6 +1,6 @@
 package com.china.fortune.reflex;
 
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.util.HashMap;
 
@@ -13,12 +13,12 @@ public class ClassHashMap extends ClassData <HashMap<String, String>>{
 
 	@Override
 	long getLong(HashMap<String, String> data, String sKey) {
-		return StringAction.toLong(data.get(sKey));
+		return StringUtils.toLong(data.get(sKey));
 	}
 
 	@Override
 	int getInt(HashMap<String, String> data, String sKey) {
-		return StringAction.toInteger(data.get(sKey));
+		return StringUtils.toInteger(data.get(sKey));
 	}
 
 	@Override

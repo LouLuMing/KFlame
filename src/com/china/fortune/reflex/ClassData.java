@@ -1,7 +1,7 @@
 package com.china.fortune.reflex;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.lang.reflect.Field;
 
@@ -78,7 +78,7 @@ public abstract class ClassData<E> {
 			Field[] lsFields = c.getFields();
 			for (Field f : lsFields) {
 				String sKey = f.getName();
-				if (StringAction.findString(lsField, sKey) < 0) {
+				if (StringUtils.findString(lsField, sKey) < 0) {
 					getField(o, f, data);
 				}
 			}

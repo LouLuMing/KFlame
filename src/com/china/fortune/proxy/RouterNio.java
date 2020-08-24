@@ -1,15 +1,14 @@
 package com.china.fortune.proxy;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.socket.bk.NioRWAttach;
+import com.china.fortune.socket.selectorManager.NioRWSerial;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-public class RouterNio extends NioRWAttach {
-
+public class RouterNio extends NioRWSerial {
     protected NioSocketActionType onRead(SelectionKey key, Object objForThread) {
         ByteBuffer bb = (ByteBuffer) objForThread;
         SocketChannel sc = (SocketChannel)key.channel();
@@ -62,10 +61,5 @@ public class RouterNio extends NioRWAttach {
 
     @Override
     protected void destroyObjectInThread(Object objForThread) {
-    }
-
-    public void addPairSocketToRead(SocketChannel to, SocketChannel from) {
-        SelectionKey skTo = registerRead(to, from);
-        SelectionKey skFrom = registerRead(from, to);
     }
 }

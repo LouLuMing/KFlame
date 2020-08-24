@@ -2,7 +2,7 @@ package com.china.fortune.messageServer;
 
 import com.china.fortune.common.AttachHelper;
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -25,7 +25,7 @@ public class MessageClient extends AttachHelper {
 	}
 	
 	public boolean checkToken(String s) {
-		return StringAction.compareTo(s, sToken) == 0;
+		return StringUtils.compareTo(s, sToken) == 0;
 	}
 	
 	public MessageClient() {
@@ -79,7 +79,11 @@ public class MessageClient extends AttachHelper {
 	}
 
 	public boolean readCompleted() {
-		return bbData.position() >= iHeadLength + iDataLength;
+		if (iDataLength > 0) {
+			return bbData.position() >= iHeadLength + iDataLength;
+		} else {
+			return false;
+		}
 	}
 
 	public String getBody(String sCharset) {

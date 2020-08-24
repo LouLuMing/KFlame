@@ -7,14 +7,8 @@ public class LogStateMachine extends StateMachine {
 		lsState.put(name, lsa);
 	}
 	
-	public void addState(String name, final StateMachine sm) {
-		StateAction sa = new StateAction(){
-			@Override
-			protected boolean onAction(Object owner) {
-				return sm.doAction(owner);
-			}
-		};
-		LogStateAction lsa = new LogStateAction(sa);
+	public void addState(String name, StateMachine sm) {
+		LogStateAction lsa = new LogStateAction(sm);
 		lsa.setName(name);
 		lsState.put(name, lsa);
 	}

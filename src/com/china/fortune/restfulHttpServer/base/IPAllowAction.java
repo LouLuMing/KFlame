@@ -6,9 +6,8 @@ import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.json.JSONObject;
-import com.china.fortune.restfulHttpServer.ActionToUrl;
 import com.china.fortune.restfulHttpServer.ResultJson;
-import com.china.fortune.socket.IPHelper;
+import com.china.fortune.socket.IPUtils;
 import com.china.fortune.timecontrol.TimeoutSetAction;
 
 public class IPAllowAction implements ServletInterface {
@@ -19,7 +18,7 @@ public class IPAllowAction implements ServletInterface {
 	}
 
 	static public void addTemporaryAllowIP(String sIP) {
-		setTemporaryAllowedIP.add(IPHelper.Ip2Int(sIP));
+		setTemporaryAllowedIP.add(IPUtils.Ip2Int(sIP));
 	}
 
 	static public boolean isTemporaryAllow(int iRemoteIP) {
@@ -34,7 +33,7 @@ public class IPAllowAction implements ServletInterface {
 	private HashSet<Integer> lsAllowedIP = new HashSet<Integer>();
 
 	public void addAllowIP(String sIP) {
-		addAllowIP(IPHelper.Ip2Int(sIP));
+		addAllowIP(IPUtils.Ip2Int(sIP));
 	}
 
 	public void addAllowIP(int iIP) {
@@ -51,7 +50,7 @@ public class IPAllowAction implements ServletInterface {
 	}
 
 	public boolean isAllowAccess(int iRemoteIP) {
-		if (IPHelper.ciLoopIP == iRemoteIP || lsAllowedIP.contains(iRemoteIP)) {
+		if (lsAllowedIP.contains(iRemoteIP)) {
 			return true;
 		} else {
 			return isTemporaryAllow(iRemoteIP);

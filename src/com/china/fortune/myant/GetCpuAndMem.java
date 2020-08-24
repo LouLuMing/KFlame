@@ -2,7 +2,7 @@ package com.china.fortune.myant;
 
 import com.china.fortune.file.ReadLinesInteface;
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class GetCpuAndMem {
 	private ReadLinesInteface rli = new ReadLinesInteface() {
@@ -15,15 +15,15 @@ public class GetCpuAndMem {
 			sb.append(s);
 			if (s.contains("KiB Swap")) {
 				String sLine = sb.toString();
-				String sCpu = StringAction.findBetween(sLine, "Cpu(s)", "KiB Mem");
-				String sCpuUS = StringAction.findBetween(sCpu, ":", "us");
-				String KiBMem = StringAction.findBetween(sLine, "KiB Mem", "KiB Swap");
-				String sTotal = StringAction.findBetween(KiBMem, ":", "total");
-				String sFree = StringAction.findBetween(KiBMem, "total", "free");
-				int iTotal = StringAction.toInteger(sTotal);
-				int iFree = StringAction.toInteger(sFree);
+				String sCpu = StringUtils.findBetween(sLine, "Cpu(s)", "KiB Mem");
+				String sCpuUS = StringUtils.findBetween(sCpu, ":", "us");
+				String KiBMem = StringUtils.findBetween(sLine, "KiB Mem", "KiB Swap");
+				String sTotal = StringUtils.findBetween(KiBMem, ":", "total");
+				String sFree = StringUtils.findBetween(KiBMem, "total", "free");
+				int iTotal = StringUtils.toInteger(sTotal);
+				int iFree = StringUtils.toInteger(sFree);
 				int iMemPercent = (iTotal - iFree) * 100 / iTotal; 
-				int iCpu = StringAction.toInteger(sCpuUS);
+				int iCpu = StringUtils.toInteger(sCpuUS);
 				Log.log("Cpu:" + iCpu + "% Mem:" + iMemPercent + "%");
 				
 				return false;

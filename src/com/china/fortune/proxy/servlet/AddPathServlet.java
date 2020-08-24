@@ -1,5 +1,6 @@
 package com.china.fortune.proxy.servlet;
 
+import com.china.fortune.global.CommonResource;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.http.webservice.servlet.RestfulStringServlet;
 import com.china.fortune.json.JSONObject;
@@ -9,16 +10,17 @@ import com.china.fortune.proxy.host.HostList;
 import com.china.fortune.restfulHttpServer.ResultJson;
 
 public class AddPathServlet extends RestfulStringServlet {
-    private ProxyManager actionManager;
     private String[] lsKey = { "resource", "path" };
-    public AddPathServlet(ProxyManager am) {
-        actionManager = am;
+    private String[] lsUnKey = { "cache", "gzip" };
+    public AddPathServlet() {
         ksKey.append(lsKey);
+        ksUnKey.append(lsUnKey);
         setUrlDecode(true);
     }
 
     @Override
     public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
+        ProxyManager actionManager = CommonResource.get(ProxyManager.class);
         HostList nif = actionManager.get(lsValues[0]);
         if (nif != null) {
             String sPath = lsValues[1];

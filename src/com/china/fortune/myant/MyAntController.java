@@ -12,7 +12,7 @@ import com.china.fortune.os.shell.RunShell;
 import com.china.fortune.reflex.ClassUtils;
 import com.china.fortune.socket.LineSocketAction;
 import com.china.fortune.socket.shortConnection.ShortConnectionServer;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.XmlNode;
 
 public class MyAntController extends ShortConnectionServer {
@@ -171,8 +171,8 @@ public class MyAntController extends ShortConnectionServer {
 			Log.setLog("log", "myLog");
 			Log.log(sMyAntXml);
 			if (myAntEngine.start(cfgXmlObj)) {
-				int iPort = StringAction.toInteger(cfgXmlObj
-						.getAttrValue("port"));
+				int iPort = StringUtils.toInteger(cfgXmlObj
+						.getAttrValue("iPort"));
 				if (iPort > 0) {
 					setTimeout(60 * 1000);
 					super.startAndBlock(iPort);

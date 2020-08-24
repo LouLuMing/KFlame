@@ -5,7 +5,7 @@ import java.io.ByteArrayInputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.xml.XmlNode;
 
@@ -71,7 +71,7 @@ public class XmlParser {
 	}
 
 	static public XmlNode parseFile(String fileName) {
-		byte[] pData = FileHelper.readSmallFile(fileName);
+		byte[] pData = FileUtils.readSmallFile(fileName);
 		if (pData != null) {
 			return parse(pData, 0, pData.length);
 		}

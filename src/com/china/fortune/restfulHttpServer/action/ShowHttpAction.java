@@ -12,7 +12,11 @@ public class ShowHttpAction implements ServletInterface {
 	@Override
 	public RunStatus doAction(HttpServerRequest hReq, HttpResponse hRes, Object objForThread) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Client:");
 		sb.append(hReq.getRmoteStringIP());
+		sb.append('\n');
+		sb.append("Ticket:");
+		sb.append(System.currentTimeMillis());
 		sb.append('\n');
 		sb.append(hReq.toString());
 		String sRecvBody = hReq.getBody();

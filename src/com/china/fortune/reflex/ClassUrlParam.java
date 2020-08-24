@@ -2,7 +2,7 @@ package com.china.fortune.reflex;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.http.PairBuilder;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -53,16 +53,16 @@ public class ClassUrlParam {
 	}
 
 	static public long getLong(String sUrl, String sKey) {
-		String sValue = StringAction.findBetweenOrEnd(sUrl, sKey + "=", "&");
-		return StringAction.toLong(sValue);
+		String sValue = StringUtils.findBetweenOrEnd(sUrl, sKey + "=", "&");
+		return StringUtils.toLong(sValue);
 	}
 
 	static public int getInt(String sUrl, String sKey) {
-		String sValue = StringAction.findBetweenOrEnd(sUrl, sKey + "=", "&");
-		return StringAction.toInteger(sValue);
+		String sValue = StringUtils.findBetweenOrEnd(sUrl, sKey + "=", "&");
+		return StringUtils.toInteger(sValue);
 	}
 
 	static public String getString(String sUrl, String sKey) {
-		return StringAction.urlDecode(StringAction.findBetweenOrEnd(sUrl, sKey + "=", "&"));
+		return StringUtils.urlDecode(StringUtils.findBetweenOrEnd(sUrl, sKey + "=", "&"));
 	}
 }

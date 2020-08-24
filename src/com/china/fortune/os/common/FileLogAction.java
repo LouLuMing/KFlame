@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.china.fortune.common.DateAction;
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.os.file.PathUtils;
 
 public class FileLogAction {
@@ -26,7 +26,7 @@ public class FileLogAction {
 		sb.append(sLogFile);
 		sb.append(DateAction.getDateAddDay(-days));
 		sb.append(LOG_EXTENSION);
-		FileHelper.delete(sb.toString());
+		FileUtils.delete(sb.toString());
 	}
 	
 	public FileLogAction(String sDir, String sFile) {

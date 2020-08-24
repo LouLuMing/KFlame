@@ -21,15 +21,16 @@ public class HostList {
     }
 
     public Host get(int iStart) {
-        if (lsHost.size() > 0) {
-            if (lsHost.size() == 1) {
+        int size = lsHost.size();
+        if (size > 0) {
+            if (size == 1) {
                 Host ph = lsHost.get(0);
                 if (ph.isActive()) {
                     return ph;
                 }
             } else {
-                for (int i = 0; i < lsHost.size(); i++) {
-                    Host ph = lsHost.get((iStart + i) % lsHost.size());
+                for (int i = 0; i < size; i++) {
+                    Host ph = lsHost.get((iStart + i) % size);
                     if (ph.isActive()) {
                         return ph;
                     }
@@ -40,21 +41,18 @@ public class HostList {
     }
 
     public Host get() {
-        if (lsHost.size() > 0) {
-            if (lsHost.size() == 1) {
-                Host ph = lsHost.get(0);
+        int size = lsHost.size();
+        if (size == 1) {
+            return lsHost.get(0);
+        } else if (size > 0) {
+            int start = (iIndex++) & 0xff;
+            for (int i = 0; i < size; i++) {
+                Host ph = lsHost.get((start + i) % size);
                 if (ph.isActive()) {
                     return ph;
                 }
-            } else {
-                int iStart = (iIndex++) & 0xff;
-                for (int i = 0; i < lsHost.size(); i++) {
-                    Host ph = lsHost.get((iStart + i) % lsHost.size());
-                    if (ph.isActive()) {
-                        return ph;
-                    }
-                }
             }
+            return lsHost.get(0);
         }
         return null;
     }
@@ -69,6 +67,19 @@ public class HostList {
             }
         }
         return exist;
+    }
+
+    public void add(String sPath, boolean cache, boolean gzip) {
+        if (sPath != null) {
+            Host exist = get(sPath);
+            if (exist == null) {
+                exist = new Host();
+                lsHost.add(exist);
+            }
+            if (exist != null) {
+                exist.update(sPath, cache, gzip);
+            }
+        }
     }
 
     public void add(String sPath) {
@@ -119,7 +130,7 @@ public class HostList {
             Host ph = lsHost.get(i);
             jarr.put(ph.sPath);
         }
-        json.put("host", jarr);
+        json.put("path", jarr);
         return json;
     }
 }

@@ -1,31 +1,43 @@
 package com.china.fortune.proxy;
 
-import com.china.fortune.compress.GZipCompressor;
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.global.CommonResource;
 import com.china.fortune.global.Log;
-import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.property.HttpProp;
 import com.china.fortune.myant.TargetInterface;
 import com.china.fortune.processflow.ProcessAction;
 import com.china.fortune.proxy.host.Host;
 import com.china.fortune.proxy.host.HostList;
-import com.china.fortune.socket.bk.NioRWAttach;
+import com.china.fortune.socket.selectorManager.NioRWSerial;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.XmlNode;
 
-import java.io.File;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static com.china.fortune.http.httpHead.HttpHeader.*;
-
-public class ProxyServer extends NioRWAttach implements TargetInterface {
-    private ConcurrentLinkedQueue<HttpProxyRequest> qObjsForClient = new ConcurrentLinkedQueue<>();
+public class ProxyServer extends NioRWSerial implements TargetInterface {
     private int iMaxHttpHeadLength = 2 * 1024;
-    private int iMaxHttpBodyLength = 2 * 1024 * 1024;
+    private int iMaxHttpBodyLength = 16 * 1024 * 1024;
+
+    private ConcurrentLinkedQueue<HttpProxyRequest> qObjsForClient = new ConcurrentLinkedQueue<>();
+    private ProxyManager proxyManager = new ProxyManager();
+
+    public ProxyServer() {
+        CommonResource.put(this);
+    }
+
+    @Override
+    protected boolean isInvalidSocket(long lLimit, SelectionKey key) {
+        Object objForClient = key.attachment();
+        if (objForClient != null) {
+            HttpProxyRequest hhb = (HttpProxyRequest) objForClient;
+            return hhb.lActiveTicket < lLimit;
+        } else {
+            return true;
+        }
+    }
 
     @Override
     protected NioSocketActionType onRead(SelectionKey key, Object objForThread) {
@@ -38,11 +50,11 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                 if (hReq.skClient == null) {
                     if (hReq.parseRequest()) {
                         hReq.skClient = key;
-                        return doAction(key, hReq, objForThread);
+                        return doAction(key, hReq);
                     }
                 } else if (hReq.skClient == key) {
                     if (hReq.parseRequest()) {
-                        return doAction(key, hReq, objForThread);
+                        return doAction(key, hReq);
                     }
                 } else {
                     return hReq.proxyData(hReq.skClient);
@@ -65,32 +77,42 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected boolean isInvalidSocket(long lLimit, SelectionKey key) {
-        Object objForClient = key.attachment();
-        if (objForClient != null) {
-            HttpProxyRequest hhb = (HttpProxyRequest) objForClient;
-            return hhb.lActiveTicket < lLimit;
-        } else {
-            return true;
-        }
-    }
-
-    @Override
     protected SelectionKey onAccept(SocketChannel sc) {
         HttpProxyRequest hhb = qObjsForClient.poll();
         if (hhb == null) {
             hhb = new HttpProxyRequest();
-        } else {
-            hhb.clear();
         }
         return registerRead(sc, hhb);
     }
 
     @Override
-    protected void onClose(SelectionKey key) {
+    protected NioSocketActionType onConnect(SelectionKey key, Object objForThread) {
         Object objForClient = key.attachment();
         if (objForClient != null) {
             HttpProxyRequest hReq = (HttpProxyRequest) objForClient;
+            if (finishConnect(key)) {
+                hReq.readyToWrite();
+//                hReq.host.setResult(true);
+                Log.log(hReq.getResource() + " " + hReq.host.sPath);
+                return hReq.write(key);
+            } else {
+                hReq.setByteBuffer(HttpProp.bHR404);
+//                hReq.host.setResult(false);
+//                key.attach(null);
+//                hReq.hostList = null;
+
+                Log.logError(hReq.getResource() + " " + hReq.host.sPath);
+                hReq.write(hReq.skClient);
+                return NioSocketActionType.NSA_CLOSE;
+            }
+        }
+        return NioSocketActionType.NSA_CLOSE;
+    }
+
+    @Override
+    protected void onClose(SelectionKey key) {
+        HttpProxyRequest hReq = (HttpProxyRequest) key.attachment();
+        if (hReq != null) {
             if (hReq.skClient == key) {
                 if (hReq.skChannel != null) {
                     freeKeyAndSocket(hReq.skChannel);
@@ -100,11 +122,7 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                     freeKeyAndSocket(hReq.skClient);
                 }
             }
-            hReq.skClient = null;
-            hReq.skChannel = null;
-            hReq.hostList = null;
-            hReq.host = null;
-            hReq.closeFileChannel();
+            hReq.clear();
             qObjsForClient.add(hReq);
         }
     }
@@ -115,42 +133,17 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    protected void destroyObjectInThread(Object objForThread) {
-    }
-
-    private ProxyManager proxyManager = new ProxyManager();
+    protected void destroyObjectInThread(Object objForThread) {}
 
     protected void addResource(String resource, String path) {
-        proxyManager.add(resource, path);
+        addResource(resource, path, false, false);
     }
 
-//    private byte[] bHR304 = new HttpResponse(304).toByte();
-//    private byte[] bHR404 = new HttpResponse(404).toByte();
-    @Override
-    protected NioSocketActionType onConnect(SelectionKey key, Object objForThread) {
-        Object objForClient = key.attachment();
-        if (objForClient != null) {
-            HttpProxyRequest hReq = (HttpProxyRequest) objForClient;
-            if (finishConnect(key)) {
-                hReq.readyToWrite();
-                hReq.host.setResult(true);
-                Log.log(hReq.getResource() + " " + hReq.host.sPath);
-                return hReq.writeOrNo(key);
-            } else {
-                hReq.setByteBuffer(HttpProp.bHR404);
-                hReq.host.setResult(false);
-                key.attach(null);
-                hReq.hostList = null;
-
-                Log.logError(hReq.getResource() + " " + hReq.host.sPath);
-                hReq.writeOrNo(hReq.skClient);
-                return NioSocketActionType.NSA_CLOSE;
-            }
-        }
-        return NioSocketActionType.NSA_CLOSE;
+    protected void addResource(String resource, String path, boolean cache, boolean gzip) {
+        proxyManager.add(resource, path, cache, gzip);
     }
 
-    public NioSocketActionType doAction(SelectionKey key, HttpProxyRequest hReq, Object objForThread) {
+    public NioSocketActionType doAction(SelectionKey key, HttpProxyRequest hReq) {
         String sResource = hReq.getResource();
         HostList pl = proxyManager.getMatch(sResource);
         if (pl != null) {
@@ -160,10 +153,7 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                 Host host = pl.get();
                 if (host != null) {
                     if (host.isaRemote != null) {
-//                        hReq.host = host;
-//                        hReq.hostList = pl;
-//                        return doConnect(hReq, host.isaRemote);
-                        SelectionKey skTo = addConnect(host.isaRemote);
+                        SelectionKey skTo = addConnect(host.isaRemote, hReq);
                         if (skTo != null) {
                             if (hReq.skChannel != null) {
                                 freeKeyAndSocket(hReq.skChannel);
@@ -171,80 +161,41 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                             hReq.host = host;
                             hReq.hostList = pl;
                             hReq.skChannel = skTo;
-                            skTo.attach(hReq);
                             return NioSocketActionType.NSA_NULL;
                         } else {
                             return NioSocketActionType.NSA_CLOSE;
                         }
                     } else {
-                        return toFileRequest(host, sResource, key, hReq, objForThread);
+                        return toFileRequest(host, sResource, key, hReq);
                     }
+                } else {
+                    Log.log(sResource + " no path");
+                    hReq.setByteBuffer(HttpProp.bHR404);
+                    return hReq.write(key);
                 }
             }
+        } else {
+            proxyManager.doCommand(sResource, hReq);
+            return hReq.write(key);
         }
-        proxyManager.doCommand(sResource, hReq);
-        return hReq.writeOrNo(key);
     }
 
-    private boolean readFile(String sFileName, HttpProxyRequest hReq, boolean bGZip) {
-        File file = new File(sFileName);
-        if (file.exists() && file.isFile()) {
-            hReq.setResponse(200);
-            hReq.appendHeader(HttpHeader.csEtag, String.valueOf(file.lastModified()));
-            hReq.appendFileHeader(sFileName);
-            long fileLen = file.length();
-            byte[] bData = FileHelper.readSmallFile(file);
-            if (bData != null) {
-                if (bGZip && fileLen > iMinGZipLength) {
-                    bData = GZipCompressor.compress(bData);
-                    hReq.appendHeader(csContentEncoding, "gzip");
-                }
-                if (bData != null) {
-                    hReq.appendBody(bData);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean readFileOrChannel(String sFileName, HttpProxyRequest hReq, boolean bGZip) {
-        File file = new File(sFileName);
-        if (file.exists() && file.isFile()) {
-            long fileLen = file.length();
-            hReq.setResponse(200);
-            hReq.appendHeader(HttpHeader.csEtag, String.valueOf(file.lastModified()));
-            hReq.appendFileHeader(sFileName);
-            if (bGZip) {
-                byte[] bData = FileHelper.readSmallFile(file);
-                if (bData != null) {
-                    if (fileLen > iMinGZipLength) {
-                        bData = GZipCompressor.compress(bData);
-                        hReq.appendHeader(csContentEncoding, "gzip");
-                    }
-                    if (bData != null) {
-                        hReq.appendBody(bData);
-                        return true;
-                    }
-                }
-            } else if (fileLen < iMinGZipLength) {
-                byte[] bData = FileHelper.readSmallFile(file);
-                if (bData != null) {
-                    hReq.appendBody(bData);
-                    return true;
-                }
-            } else {
-                hReq.appendHeader(csContentLength, String.valueOf(fileLen));
-                hReq.appendString(csEnter);
-                hReq.readyToWrite();
-                return hReq.openFileChannel(file);
-            }
-        }
-        return false;
+    public void refreshCache(String sFileName) {
+        cacheFiles.remove(sFileName);
+//        byte[] bCache = cacheFiles.get(sFileName);
+//        if (bCache != null) {
+//            HttpResponse hRes = new HttpResponse();
+//            hRes.parseHttpHeader(bCache);
+//            boolean bGZip = "gzip".equals(hRes.getHeaderValue(csContentEncoding));
+//            HttpProxyRequest hReq = new HttpProxyRequest();
+//            if (hReq.readFile(sFileName, bGZip)) {
+//                cacheFiles.put(sFileName, hReq.toByte());
+//            }
+//        }
     }
 
     private ConcurrentHashMap<String, byte[]> cacheFiles = new ConcurrentHashMap<>();
-    private NioSocketActionType toFileRequest(Host proxy, String sResource, SelectionKey key, HttpProxyRequest hReq, Object objForThread) {
+    private NioSocketActionType toFileRequest(Host proxy, String sResource, SelectionKey key, HttpProxyRequest hReq) {
         if (hReq.findIfNoneMatch()) {
             Log.log(sResource + " " + 304);
             hReq.setByteBuffer(HttpProp.bHR304);
@@ -254,21 +205,20 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
             if (proxy.isCache) {
                 byte[] bCache = cacheFiles.get(sFileName);
                 if (bCache == null) {
-                    if (readFile(sFileName, hReq, bGZip)) {
-                        bCache = hReq.toByte();
+                    if (hReq.readFile(sFileName, bGZip)) {
+                        cacheFiles.put(sFileName, hReq.toByte());
                         Log.log(sResource + " " + sFileName);
-                        cacheFiles.put(sFileName, bCache);
                     } else {
-                        Log.logError(sResource + " " + sFileName);
                         hReq.setByteBuffer(HttpProp.bHR404);
+                        Log.logError(sResource + " " + sFileName);
                     }
                 } else {
-                    Log.log(sResource + " " + sFileName);
                     hReq.setByteBuffer(bCache);
-                    return hReq.writeOrNo(key);
+                    Log.log(sResource + " " + sFileName);
+                    return hReq.write(key);
                 }
             } else {
-                if (readFileOrChannel(sFileName, hReq, bGZip)) {
+                if (hReq.readFileOrChannel(sFileName, bGZip)) {
                     Log.log(sResource + " " + sFileName);
                     return hReq.writeAndTransferFile(key);
                 } else {
@@ -277,12 +227,7 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                 }
             }
         }
-
-        return hReq.writeOrNo(key);
-    }
-
-    protected void initAndStart(int iLocalPort) {
-        startAndBlock(iLocalPort);
+        return hReq.write(key);
     }
 
     public void refreshResourceMap(XmlNode cfg) {
@@ -295,12 +240,14 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
                     String sPath = resource.getText();
                     String sUrl = resource.getAttrValue("url");
                     if (sUrl != null && sPath != null) {
-                        String[] lsPath = StringAction.split(sPath, ';');
+                        String cache = resource.getAttrValue("cache");
+                        String gzip = resource.getAttrValue("gzip");
+                        String[] lsPath = StringUtils.split(sPath, ';');
                         for (String path : lsPath) {
-                            lsMap.add(sUrl, path);
+                            lsMap.add(sUrl, path, "1".equals(cache), "1".equals(gzip));
                         }
                     }
-                    Log.log(sUrl + ":" + sPath);
+
                 }
             }
             proxyManager = lsMap;
@@ -308,12 +255,12 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
     }
 
     @Override
-    public boolean doAction(XmlNode cfg, ProcessAction self) {
-        int iLocalPort = StringAction.toInteger(cfg.getChildNodeText("localport"));
+    public boolean doAction(ProcessAction self, XmlNode cfg) {
+        int iLocalPort = StringUtils.toInteger(cfg.getChildNodeText("localport"));
         Log.logClass("ProxyServer start " + iLocalPort);
         refreshResourceMap(cfg);
         proxyManager.loadData();
-        initAndStart(iLocalPort);
+        startAndBlock(iLocalPort);
         Log.logClass("ProxyServer stop");
         return true;
     }
@@ -322,7 +269,8 @@ public class ProxyServer extends NioRWAttach implements TargetInterface {
     static public void main(String[] args) {
         ProxyServer obj = new ProxyServer();
 //        obj.addResource("/a.html", "z:\\");
-        obj.addResource("/", "http://20.21.1.170:8989");
-        obj.initAndStart(8989);
+//        obj.addResource("/slideValidate", "http://20.21.1.133:30082");
+        obj.addResource("/", "http://20.21.1.133:8085");
+        obj.startAndBlock(8989);
     }
 }

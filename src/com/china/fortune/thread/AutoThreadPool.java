@@ -35,6 +35,7 @@ public abstract class AutoThreadPool {
 		for (int i = 1; i < iMinThread; i++) {
 			addNewThread();
 		}
+		iTotalThreadCount.set(iMinThread);
 		Log.logClass("minThread:" + iMinThread + " maxThread:" + iMaxThread);
 	}
 
@@ -113,10 +114,10 @@ public abstract class AutoThreadPool {
 				if (hasFreeThread) {
 					iQuitRequest = 0;
 					if (++iContinuouslyWork > iLimitContinuousWork) {
-						if (iTotalThreadCount.get() < iMaxThread) {
-							iTotalThreadCount.getAndIncrement();
+						if (iTotalThreadCount.getAndIncrement() < iMaxThread) {
 							addNewThread();
 						} else {
+							iTotalThreadCount.getAndDecrement();
 							hasFreeThread = false;
 						}
 						iContinuouslyWork = 0;

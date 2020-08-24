@@ -9,7 +9,7 @@ public class FastJSONParser {
 			String sFullKey = '"' + sKey + '"';
 			int iStart = sJson.indexOf(sFullKey);
 			if (iStart > 0) {
-				sValue = StringAction.findBetween(sJson, iStart + sFullKey.length() + 1, '"', '"');
+				sValue = StringUtils.findBetween(sJson, iStart + sFullKey.length() + 1, '"', '"');
 			}
 		}
 		return sValue;

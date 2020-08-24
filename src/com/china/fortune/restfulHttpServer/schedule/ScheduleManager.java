@@ -2,10 +2,9 @@ package com.china.fortune.restfulHttpServer.schedule;
 
 import com.china.fortune.common.DateAction;
 import com.china.fortune.global.Log;
-import com.china.fortune.http.webservice.servlet.ServletInterface;
 import com.china.fortune.restfulHttpServer.BeansFamily;
 import com.china.fortune.restfulHttpServer.msgSystem.MsgInterface;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public abstract class ScheduleManager {
     private long iMinLoop = 60 * 60 * 1000;
@@ -31,7 +30,7 @@ public abstract class ScheduleManager {
 
     private long[] lsMultiCode = {1000, 60 * 1000, 3600 * 1000, 24*3600*1000};
     public void addSchedule(MsgInterface mi, String cron) {
-        String[] lsTime = StringAction.split(cron, ' ');
+        String[] lsTime = StringUtils.split(cron, ' ');
         if (lsTime != null) {
             long startTicket = 0;
             long loopTicket = 0;
@@ -39,10 +38,10 @@ public abstract class ScheduleManager {
                 String sTime = lsTime[i];
                 int iDot = sTime.indexOf('/');
                 if (iDot > 0) {
-                    startTicket += StringAction.toInteger(sTime.substring(0, iDot)) * lsMultiCode[i];
-                    loopTicket += StringAction.toInteger(sTime.substring(iDot)) * lsMultiCode[i];
+                    startTicket += StringUtils.toInteger(sTime.substring(0, iDot)) * lsMultiCode[i];
+                    loopTicket += StringUtils.toInteger(sTime.substring(iDot)) * lsMultiCode[i];
                 } else {
-                    startTicket += StringAction.toInteger(sTime) * lsMultiCode[i];
+                    startTicket += StringUtils.toInteger(sTime) * lsMultiCode[i];
                 }
             }
             if (loopTicket > 0) {

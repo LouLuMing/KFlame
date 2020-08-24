@@ -12,6 +12,7 @@ public class MySqlManager {
 	private AtomicInteger iMySqlCount = new AtomicInteger(0);
 	private String sMySqlServer = null;
 	private String sMySqlDBName = null;
+	private ConcurrentLinkedQueue<MySqlDbAction> lsDBObjs = new ConcurrentLinkedQueue<MySqlDbAction>();
 
 	public boolean init(String sIP, String sDBName, String sSqlUser, String sSqlPasswd) {
 		Log.logClass(sIP + ":" + sSqlUser + ":" + sSqlPasswd + ":" + sDBName);
@@ -19,16 +20,20 @@ public class MySqlManager {
 		sMySqlDBName = sDBName;
 		sMySqlUser = sSqlUser;
 		sMySqlPasswd = sSqlPasswd;
-		return true;
+		MySqlDbAction dbObj = get();
+		if (dbObj != null) {
+			free(dbObj);
+			return true;
+		} else {
+			return false;
+		}
 	}
-
-	private ConcurrentLinkedQueue<MySqlDbAction> queueDB = new ConcurrentLinkedQueue<MySqlDbAction>();
 
 	public MySqlDbAction get() {
 		MySqlDbAction dbObj = null;
 		if (sMySqlServer != null) {
-            if (!queueDB.isEmpty()) {
-                dbObj = queueDB.poll();
+            if (!lsDBObjs.isEmpty()) {
+                dbObj = lsDBObjs.poll();
             }
             if (dbObj == null) {
                 dbObj = new MySqlDbAction();
@@ -48,21 +53,22 @@ public class MySqlManager {
 
 	public void free(MySqlDbAction dbObj) {
 		if (dbObj != null) {
-			int iCount = queueDB.size();
+			int iCount = lsDBObjs.size();
 			if (iCount > iMinAliveCount) {
 				dbObj.close();
 				iMySqlCount.decrementAndGet();
 			} else {
-				queueDB.add(dbObj);
+				lsDBObjs.add(dbObj);
 			}
 		}
 	}
 
 	public void clear() {
-		while (!queueDB.isEmpty()) {
-			MySqlDbAction dbObj = queueDB.poll();
+		while (!lsDBObjs.isEmpty()) {
+			MySqlDbAction dbObj = lsDBObjs.poll();
 			if (dbObj != null) {
 				dbObj.close();
+				iMySqlCount.decrementAndGet();
 			}
 		}
 	}

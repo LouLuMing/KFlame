@@ -1,10 +1,13 @@
 package com.china.fortune.proxy;
 
+import com.china.fortune.compress.GZipCompressor;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
+import com.china.fortune.http.httpHead.HttpHeader;
 import com.china.fortune.http.server.HttpServerRequest;
 import com.china.fortune.proxy.host.Host;
 import com.china.fortune.proxy.host.HostList;
-import com.china.fortune.socket.SocketChannelHelper;
+import com.china.fortune.socket.SocketChannelUtils;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 
 import java.io.File;
@@ -19,10 +22,14 @@ public class HttpProxyRequest extends HttpServerRequest {
     public HostList hostList;
     public Host host;
 //    public boolean noChannel = true;
-//    public void clear() {
-//        super.clear();
-//        closeFileChannel();
-//    }
+    public void clear() {
+        super.clear();
+        skClient = null;
+        skChannel = null;
+        hostList = null;
+        host = null;
+        closeFileChannel();
+    }
 
     private FileChannel fileChannel = null;
     private FileInputStream fileStream = null;
@@ -89,7 +96,7 @@ public class HttpProxyRequest extends HttpServerRequest {
         if (bbData.remaining() == 0) {
             return transferFile(key);
         } else {
-            if (SocketChannelHelper.write(sc, bbData) > 0) {
+            if (SocketChannelUtils.write(sc, bbData) >= 0) {
                 if (bbData.remaining() == 0) {
                     return transferFile(key);
                 } else {
@@ -103,10 +110,10 @@ public class HttpProxyRequest extends HttpServerRequest {
 
     public NioSocketActionType channelData(SocketChannel sc) {
         bbData.clear();
-        if (SocketChannelHelper.read(sc, bbData) > 0) {
+        if (SocketChannelUtils.read(sc, bbData) > 0) {
             bbData.flip();
             SocketChannel scTo = (SocketChannel) skClient.channel();
-            if (SocketChannelHelper.write(scTo, bbData) >= 0) {
+            if (SocketChannelUtils.write(scTo, bbData) >= 0) {
                 if (bbData.remaining() == 0) {
                     reset();
                     skClient.interestOps(SelectionKey.OP_READ);
@@ -118,5 +125,62 @@ public class HttpProxyRequest extends HttpServerRequest {
             }
         }
         return NioSocketActionType.NSA_CLOSE;
+    }
+
+    public boolean readFileOrChannel(String sFileName, boolean bGZip) {
+        File file = new File(sFileName);
+        if (file.exists() && file.isFile()) {
+            long fileLen = file.length();
+            setResponse(200);
+            appendHeader(HttpHeader.csEtag, String.valueOf(file.lastModified()));
+            appendFileHeader(sFileName);
+            if (bGZip) {
+                byte[] bData = FileUtils.readSmallFile(file);
+                if (bData != null) {
+                    if (fileLen > iMinGZipLength) {
+                        bData = GZipCompressor.compress(bData);
+                        appendHeader(csContentEncoding, "gzip");
+                    }
+                    if (bData != null) {
+                        appendBody(bData);
+                        return true;
+                    }
+                }
+            } else if (fileLen < iMinGZipLength) {
+                byte[] bData = FileUtils.readSmallFile(file);
+                if (bData != null) {
+                    appendBody(bData);
+                    return true;
+                }
+            } else {
+                appendHeader(csContentLength, String.valueOf(fileLen));
+                appendString(csEnter);
+                readyToWrite();
+                return openFileChannel(file);
+            }
+        }
+        return false;
+    }
+
+    public boolean readFile(String sFileName, boolean bGZip) {
+        File file = new File(sFileName);
+        if (file.exists() && file.isFile()) {
+            setResponse(200);
+            appendHeader(HttpHeader.csEtag, String.valueOf(file.lastModified()));
+            appendFileHeader(sFileName);
+            long fileLen = file.length();
+            byte[] bData = FileUtils.readSmallFile(file);
+            if (bData != null) {
+                if (bGZip && fileLen > iMinGZipLength) {
+                    bData = GZipCompressor.compress(bData);
+                    appendHeader(csContentEncoding, "gzip");
+                }
+                if (bData != null) {
+                    appendBody(bData);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -1,9 +1,9 @@
 package com.china.fortune.struct;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-
 import com.china.fortune.global.ConstData;
+import com.china.fortune.global.Log;
+
+import java.util.Arrays;
 
 public class ByteArray {
 	private byte[] bBuffer = null;
@@ -74,7 +74,8 @@ public class ByteArray {
 			if (bBuffer != null) {
 				sResult = new String(bBuffer, ConstData.scDefaultCoding);
 			}
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
+			Log.logException(e);
 		}
 		return sResult;
 	}

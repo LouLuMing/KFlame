@@ -2,14 +2,14 @@ package com.china.fortune.http.server;
 
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
-import com.china.fortune.socket.selectorManager.NioMod;
+import com.china.fortune.socket.selectorManager.NioRWSerial;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public abstract class HttpServerNioAttach extends NioMod {
+public abstract class HttpServerNioAttach extends NioRWSerial {
     protected abstract boolean service(HttpServerRequest hReq, HttpResponse hRes, Object objForThread);
 
     protected ConcurrentLinkedQueue<HttpServerRequest> qObjsForClient = new ConcurrentLinkedQueue<HttpServerRequest>();
@@ -23,13 +23,11 @@ public abstract class HttpServerNioAttach extends NioMod {
     @Override
     protected SelectionKey onAccept(SocketChannel sc) {
         if (allowAccept(sc)) {
-            HttpServerRequest hhb = qObjsForClient.poll();
-            if (hhb != null) {
-                hhb.clear();
-            } else {
-                hhb = new HttpServerRequest();
+            HttpServerRequest hReq = qObjsForClient.poll();
+            if (hReq == null) {
+                hReq = new HttpServerRequest();
             }
-            return registerRead(sc, hhb);
+            return registerRead(sc, hReq);
         } else {
             return null;
         }
@@ -37,9 +35,8 @@ public abstract class HttpServerNioAttach extends NioMod {
 
     @Override
     protected NioSocketActionType onRead(SelectionKey key, Object objForThread) {
-        Object objForClient = key.attachment();
-        if (objForClient != null) {
-            HttpServerRequest hReq = (HttpServerRequest)objForClient;
+        HttpServerRequest hReq = (HttpServerRequest) key.attachment();
+        if (hReq != null) {
             SocketChannel sc = (SocketChannel) key.channel();
             NioSocketActionType op = hReq.readHttpHead(sc, iMaxHttpHeadLength, iMaxHttpBodyLength);
             if (op == NioSocketActionType.NSA_READ_COMPLETED) {
@@ -60,10 +57,9 @@ public abstract class HttpServerNioAttach extends NioMod {
 
     @Override
     protected NioSocketActionType onWrite(SelectionKey key, Object objForThread) {
-        Object objForClient = key.attachment();
-        if (objForClient != null) {
-            HttpServerRequest hs = (HttpServerRequest) objForClient;
-            return hs.write(key);
+        HttpServerRequest hReq = (HttpServerRequest) key.attachment();
+        if (hReq != null) {
+            return hReq.write(key);
         }
         return NioSocketActionType.NSA_CLOSE;
     }
@@ -80,10 +76,9 @@ public abstract class HttpServerNioAttach extends NioMod {
 
     @Override
     protected boolean isInvalidSocket(long lLimit, SelectionKey key) {
-        Object objForClient = key.attachment();
-        if (objForClient != null) {
-            HttpServerRequest hhb = (HttpServerRequest) objForClient;
-            return hhb.lActiveTicket < lLimit;
+        HttpServerRequest hReq = (HttpServerRequest) key.attachment();
+        if (hReq != null) {
+            return hReq.lActiveTicket < lLimit;
         } else {
             return true;
         }
@@ -91,9 +86,10 @@ public abstract class HttpServerNioAttach extends NioMod {
 
     @Override
     protected void onClose(SelectionKey key) {
-        Object objForClient = key.attachment();
-        if (objForClient != null) {
-            qObjsForClient.add((HttpServerRequest) objForClient);
+        HttpServerRequest hReq = (HttpServerRequest) key.attachment();
+        if (hReq != null) {
+            hReq.clear();
+            qObjsForClient.add(hReq);
         }
     }
 

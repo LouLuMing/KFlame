@@ -13,7 +13,6 @@ import com.china.fortune.socket.shortConnection.ShortConnectionServer;
 public abstract class HttpServer extends ShortConnectionServer {
 	protected abstract void service(HttpRequest hReq, HttpResponse hRes);
 
-	
 	@Override
 	protected void onRead(Socket sc) {
 		LineSocketAction lSA = new LineSocketAction();

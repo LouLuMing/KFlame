@@ -55,9 +55,9 @@ public class ByteBufferUtils {
 		return indexOf(bbData, iOff, bbData.position()+1, bCompare);
 	}
 
-	static public int indexOf(ByteBuffer bbData, int iOff, int iLen, byte[] bCompare) {
+	static public int indexOf(ByteBuffer bbData, int iStart, int iEnd , byte[] bCompare) {
 		int iIndex = -1;
-		for (int i = iOff; i < iLen - bCompare.length; i++) {
+		for (int i = iStart; i < iEnd - bCompare.length; i++) {
 			boolean bFound = true;
 			for (int j = 0; j < bCompare.length; j++) {
 				if (bbData.get(i + j) != bCompare[j]) {
@@ -110,12 +110,20 @@ public class ByteBufferUtils {
 		for (int i = iStart; i < iEnd; i++) {
 			bData[j++] = bb.get(i);
 		}
+
+//		System.arraycopy(bb.array(), iStart, bData, 0, bData.length);
+
 		return bData;
+	}
+
+	static public String toString(ByteBuffer bb) {
+		return new String(toByte(bb, 0, bb.position()));
 	}
 
 	static public String toString(ByteBuffer bb, int iStart, int iEnd) {
 		return new String(toByte(bb, iStart, iEnd));
 	}
+
 	static public String toHexString(ByteBuffer bb, int iOff, int iCount) {
 		StringBuilder sb = new StringBuilder(iCount * 2 + 1);
 		for (int i = iOff; i < iOff + iCount; i++) {
@@ -132,10 +140,10 @@ public class ByteBufferUtils {
 			if (b >= (byte) '0' && b <= (byte) '9') {
 				iLen *= 10;
 				iLen += (b - '0');
-//			} else if (b == 0x0d) {
-//				break;
-			} else {
+			} else if (b == 0x0d) {
 				break;
+//			} else {
+//				break;
 			}
 		}
 		return iLen;

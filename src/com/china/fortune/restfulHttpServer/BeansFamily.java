@@ -20,6 +20,7 @@ public class BeansFamily {
     public void put(String key, Object o) {
         if (key != null && o != null) {
             if (!lsTag.contains(key)) {
+                Log.logClass(key + ":" + o.getClass().getSimpleName());
                 lsTag.add(key);
                 lsBean.add(o);
             } else {
@@ -138,10 +139,11 @@ public class BeansFamily {
                 f.setAccessible(true);
                 Object bean = f.get(obj);
                 if (bean == null) {
-                    Class<?> clsType = f.getType();
-                    if (clsType.isAnnotationPresent(Autowired.class)) {
+                    if (f.isAnnotationPresent(Autowired.class)) {
+                        Class<?> clsType = f.getType();
                         bean = get(clsType);
                         if (bean != null) {
+                            Log.logClass(cls.getSimpleName() + ":" + clsType.getSimpleName());
                             f.set(obj, bean);
                         } else {
                             Log.logClassError(cls.getName() + ":" + clsType.getName() + " is null");

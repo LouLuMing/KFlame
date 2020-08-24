@@ -2,12 +2,12 @@ package com.china.fortune.myant;
 
 import java.util.ArrayList;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
-import com.china.fortune.http.HttpSendAndRecv;
+import com.china.fortune.http.HttpUtils;
 import com.china.fortune.os.file.PathUtils;
 import com.china.fortune.os.xml.XmlParser;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.AttrNode;
 import com.china.fortune.xml.XmlNode;
 
@@ -18,12 +18,12 @@ public class MyAntXml {
 	static public XmlNode parse(String sFile) {
 		XmlNode cfgXmlObj = null;
 		if (sFile.startsWith("http:")) {
-			String sFileData = HttpSendAndRecv.doGet(sFile);
+			String sFileData = HttpUtils.get(sFile);
 			if (sFileData != null) {
 				cfgXmlObj = XmlParser.parse(sFileData, "utf-8");
 			}
 		} else {
-			if (FileHelper.isExists(sFile)) {
+			if (FileUtils.isExists(sFile)) {
 				cfgXmlObj = XmlParser.parseFile(sFile);	
 			}
 		}
@@ -68,7 +68,7 @@ public class MyAntXml {
 	private static String findAndReplace(ArrayList<XmlNode> lsXmlObj, String sValue, boolean bRecursion) {
 		String sReplace = null;
 		if (sValue != null) {
-			String prop = StringAction.findBetween(sValue, cStrFrom, cStrTo);
+			String prop = StringUtils.findBetween(sValue, cStrFrom, cStrTo);
 			if (prop != null) {
 				if (prop.length() > 0) {
 					String value = findValueByProperty(lsXmlObj, prop, bRecursion);

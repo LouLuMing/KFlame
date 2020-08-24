@@ -136,7 +136,7 @@ public abstract class NewBaseWebTarget extends WebService implements TargetInter
 	}
 
 	@Override
-	public boolean doAction(XmlNode cfg, ProcessAction self) {
+	public boolean doAction(ProcessAction self, XmlNode cfg) {
 		WebConfig wc = new WebConfig();
 		ClassXml.toObject(cfg, wc);
 		if (ClassUtils.checkNoNull(wc)) {

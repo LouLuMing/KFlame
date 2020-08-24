@@ -9,8 +9,8 @@ import com.china.fortune.restfulHttpServer.ResultJson;
 import com.china.fortune.restfulHttpServer.ServerAccess;
 import com.china.fortune.restfulHttpServer.base.IPAllowAction;
 import com.china.fortune.secure.RSAAction;
-import com.china.fortune.socket.IPHelper;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.socket.IPUtils;
+import com.china.fortune.string.StringUtils;
 
 public class AddAllowIPAction extends RestfulStringServlet {
 	private String[] lsKey = { "ip", "rsa" };
@@ -22,11 +22,11 @@ public class AddAllowIPAction extends RestfulStringServlet {
 	@Override
 	public RunStatus doWork(HttpServerRequest hReq, JSONObject json, Object dbObj, String[] lsValues) {
 		String sDecr = RSAAction.decryptByPrivateKey(lsValues[1], InterfaceRSAKey.RSA_Data_Private);
-		if (StringAction.compareTo(sDecr, lsValues[0]) == 0) {
+		if (StringUtils.compareTo(sDecr, lsValues[0]) == 0) {
 			if (lsValues[0].indexOf('.') > 0) {
-				IPAllowAction.addTemporaryAllowIP(IPHelper.Ip2Int(lsValues[0]));
+				IPAllowAction.addTemporaryAllowIP(IPUtils.Ip2Int(lsValues[0]));
 			} else {
-				IPAllowAction.addTemporaryAllowIP(StringAction.toInteger(lsValues[0]));
+				IPAllowAction.addTemporaryAllowIP(StringUtils.toInteger(lsValues[0]));
 			}
 			ResultJson.fillData(json, 0, "ok", null);
 		} else {

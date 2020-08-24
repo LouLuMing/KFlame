@@ -8,9 +8,8 @@ import com.china.fortune.json.JSONArray;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.reflex.ClassDatabase;
 import com.china.fortune.reflex.ClassJson;
-import com.china.fortune.reflex.ClassSerialize;
 import com.china.fortune.reflex.ClassUtils;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class ObjectListFromDB {
 	private Class<?> cClass = null;
@@ -60,7 +59,7 @@ public class ObjectListFromDB {
 			if (f != null) {
 				f.setAccessible(true);
 				for (Object obj : lsObject) {
-					if (StringAction.compareTo((String)f.get(obj), sValue) == 0) {
+					if (StringUtils.compareTo((String)f.get(obj), sValue) == 0) {
 						rs = obj;
 						break;
 					}

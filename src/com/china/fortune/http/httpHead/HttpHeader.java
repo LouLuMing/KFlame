@@ -4,9 +4,8 @@ import com.china.fortune.common.ByteAction;
 import com.china.fortune.common.ByteBufferUtils;
 import com.china.fortune.compress.GZipCompressor;
 import com.china.fortune.global.ConstData;
-import com.china.fortune.global.Log;
 import com.china.fortune.struct.FastList;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 import com.china.fortune.xml.ByteParser;
 
 import java.io.UnsupportedEncodingException;
@@ -38,6 +37,7 @@ public class HttpHeader {
     static final public String csSecWebSocketKey = "Sec-WebSocket-Key";
 
 	protected byte[] bBody = null;
+	protected String sBody = null;
     protected FastList<Header> lsHeader = new FastList<Header>();
 
 	public void copy(HttpHeader hh) {
@@ -107,7 +107,7 @@ public class HttpHeader {
 				iIndex--;
 			}
 			if (iIndex > iStart) {
-				String sKey = StringAction.newString(bData, iStart, iIndex+1);
+				String sKey = StringUtils.newString(bData, iStart, iIndex+1);
 				iIndex = iPos + 1;
 				while (bData.get(iIndex) == ' ') {
 					iIndex++;
@@ -116,7 +116,7 @@ public class HttpHeader {
 					iEnd--;
 				}
 				if (iEnd > iIndex) {
-					String sValue = StringAction.newString(bData, iIndex, iEnd+1);
+					String sValue = StringUtils.newString(bData, iIndex, iEnd+1);
 					addHeader(sKey, sValue);
 				}
 			}
@@ -185,14 +185,14 @@ public class HttpHeader {
 	}
 
 	public int getContentLength() {
-		return StringAction.toInteger(getHeaderValue(csContentLength));
+		return StringUtils.toInteger(getHeaderValue(csContentLength));
 	}
 
 	public String getContentType() {
 		String sContentType = null;
 		String sRType = getHeaderValue(csContentType);
 		if (sRType != null) {
-			String sTmp = StringAction.getBefore(sRType, ";");
+			String sTmp = StringUtils.getBefore(sRType, ";");
 			if (sTmp != null) {
 				sContentType = sTmp.trim();
 			}
@@ -204,9 +204,9 @@ public class HttpHeader {
 		String sCharset = null;
 		String sRType = getHeaderValue(csContentType);
 		if (sRType != null) {
-			String sTmp = StringAction.getAfter(sRType, csCharset);
+			String sTmp = StringUtils.getAfter(sRType, csCharset);
 			if (sTmp != null) {
-				sCharset = StringAction.getBefore(sTmp, ";");
+				sCharset = StringUtils.getBefore(sTmp, ";");
 			}
 		}
 		return sCharset;
@@ -215,19 +215,20 @@ public class HttpHeader {
 	public String getBody(String sCharset) {
 		String sBody = null;
 		if (bBody != null) {
-			sBody = StringAction.newString(bBody, sCharset);
+			sBody = StringUtils.newString(bBody, sCharset);
 		}
 		return sBody;
 	}
 
 	public String getBody() {
-		String sBody = null;
-		if (bBody != null) {
-			String sCharset = getCharset();
-			if (sCharset == null) {
-				sCharset = ConstData.sHttpCharset;
+		if (sBody == null) {
+			if (bBody != null) {
+				String sCharset = getCharset();
+				if (sCharset == null) {
+					sCharset = ConstData.sHttpCharset;
+				}
+				sBody = StringUtils.newString(bBody, sCharset);
 			}
-			sBody = StringAction.newString(bBody, sCharset);
 		}
 		return sBody;
 	}
@@ -296,6 +297,7 @@ public class HttpHeader {
 
 	public void setBodyOnly(String sBody) {
 		if (sBody != null) {
+			this.sBody = sBody;
 			try {
 				bBody = sBody.getBytes("utf-8");
 			} catch (UnsupportedEncodingException e) {
@@ -307,6 +309,7 @@ public class HttpHeader {
 
 	public void setBody(String sBody, String sType, String sCode) {
 		if (sBody != null) {
+			this.sBody = sBody;
 			try {
 				byte[] pBody = sBody.getBytes(sCode);
 				setContentType(sType, sCode);
@@ -365,7 +368,7 @@ public class HttpHeader {
 	}
 
 	protected boolean isChunked(ByteBuffer bb, int iOff, int iEnd) {
-		for (int i = iOff; i < iEnd - 14; i++) {
+		for (int i = iOff; i < iEnd - 7; i++) {
 			if ((bb.get(i + 0) == 'c' || bb.get(i + 0) == 'C')
 					&& bb.get(i + 1) == 'h' && bb.get(i + 2) == 'u'
 					&& bb.get(i + 3) == 'n' && bb.get(i + 4) == 'k'
@@ -411,13 +414,13 @@ public class HttpHeader {
 	}
 
 	protected int getContentLength(ByteBuffer bb, int iOff, int iEnd) {
-		int iLen = 0;
-		for (int i = iOff; i < iEnd - 14; i++) {
+		int iLen = -1;
+		for (int i = iOff; i < iEnd - 15; i++) {
 			if ((bb.get(i + 0) == 'c' || bb.get(i + 0) == 'C') && bb.get(i + 1) == 'o' && bb.get(i + 2) == 'n'
 					&& bb.get(i + 3) == 't' && bb.get(i + 4) == 'e' && bb.get(i + 5) == 'n' && bb.get(i + 6) == 't'
 					&& bb.get(i + 7) == '-' && (bb.get(i + 8) == 'L' || bb.get(i + 8) == 'l') && bb.get(i + 9) == 'e'
 					&& bb.get(i + 10) == 'n' && bb.get(i + 11) == 'g' && bb.get(i + 12) == 't' && bb.get(i + 13) == 'h') {
-				iLen = ByteBufferUtils.getLength(bb, i+14, iEnd);
+				iLen = ByteBufferUtils.getLength(bb, i+15, iEnd);
 //				for (int j = i + 14; j <= iEnd; j++) {
 //					if (bData[j] >= (byte) '0' && bData[j] <= (byte) '9') {
 //						iLen *= 10;
@@ -481,6 +484,30 @@ public class HttpHeader {
 //		return hz;
 //	}
 
+	public boolean parseHttpHeader(byte[] bData) {
+		boolean rs = false;
+		int iMethod = ByteParser.indexOf(bData, 0, HttpHeader.fbCRLF);
+		if (iMethod > 0) {
+			int iHeadLength = ByteParser.indexOf(bData, iMethod, HttpHeader.fbCRLFCRLF);
+			if (iHeadLength > 0) {
+				while (iMethod + HttpHeader.fbCRLFCRLF.length < iHeadLength) {
+					int iOff = iMethod + HttpHeader.fbCRLF.length;
+					iMethod = ByteParser.indexOf(bData, iOff, HttpHeader.fbCRLF);
+					if (iMethod > 0) {
+						String sLine = StringUtils.newString(bData, iOff, iMethod - iOff);
+						if (sLine != null) {
+							parseHeader(sLine);
+						}
+					} else {
+						break;
+					}
+				}
+			}
+			rs = true;
+		}
+		return rs;
+	}
+
 	public boolean parseHttpHeader(byte[] bData, int iHeadLength) {
 		boolean rs = false;
 		int iMethod = ByteParser.indexOf(bData, 0, HttpHeader.fbCRLF);
@@ -489,10 +516,12 @@ public class HttpHeader {
 				int iOff = iMethod + HttpHeader.fbCRLF.length;
 				iMethod = ByteParser.indexOf(bData, iOff, HttpHeader.fbCRLF);
 				if (iMethod > 0) {
-					String sLine = StringAction.newString(bData, iOff, iMethod - iOff);
+					String sLine = StringUtils.newString(bData, iOff, iMethod - iOff);
 					if (sLine != null) {
 						parseHeader(sLine);
 					}
+				} else {
+					break;
 				}
 			}
 			rs = true;

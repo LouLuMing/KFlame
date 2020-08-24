@@ -1,6 +1,6 @@
 package com.china.fortune.restfulHttpServer.action;
 
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.http.httpHead.HttpResponse;
 import com.china.fortune.http.server.HttpServerRequest;
@@ -21,7 +21,7 @@ public class OneFileAction implements ServletInterface {
 	public void setFile(String sFileName) {
 		if (sFileName != null) {
 			sFileName = PathUtils.getFullPath(sFileName);
-			if (sFileName != null && FileHelper.isExists(sFileName)) {
+			if (sFileName != null && FileUtils.isExists(sFileName)) {
 				sFile = sFileName;
 			} else {
 				Log.logClassError(sFileName + " is not exist");

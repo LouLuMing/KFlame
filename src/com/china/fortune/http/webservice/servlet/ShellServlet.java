@@ -8,7 +8,7 @@ public abstract class ShellServlet implements ServletInterface {
     }
 
     public ServletInterface getHost() {
-        return svHost.getHost();
+        return svHost;
     };
 
 }

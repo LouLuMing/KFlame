@@ -14,7 +14,7 @@ public class MoneyToChinese {
 		if (iDot > 0) {
 			sYuanMoney = sMoney.substring(0, iDot);
 			sFenMoney = sMoney.substring(iDot + 1);
-			if (StringAction.toInteger(sFenMoney) == 0) {
+			if (StringUtils.toInteger(sFenMoney) == 0) {
 				sFenMoney = null;
 			}
 		}

@@ -6,7 +6,7 @@ import com.china.fortune.processflow.ProcessAction;
 import com.china.fortune.xml.XmlNode;
 
 public class testStatemachine implements TargetInterface {
-	public boolean doAction(XmlNode cfg , ProcessAction proc) {
+	public boolean doAction(ProcessAction proc, XmlNode cfg) {
 		Log.log("stateMachine start");
 		StateMachine obj = new StateMachine();
 		

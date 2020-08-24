@@ -1,22 +1,21 @@
 package com.china.fortune.http.server;
 
-import com.china.fortune.socket.SocketChannelHelper;
-import com.china.fortune.socket.bk.NioRWAttach;
+import com.china.fortune.socket.SocketChannelUtils;
+import com.china.fortune.socket.selectorManager.NioRWSerial;
 import com.china.fortune.socket.selectorManager.NioSocketActionType;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-public abstract class HttpSendRecvNio extends NioRWAttach {
+public abstract class HttpSendRecvNio extends NioRWSerial {
     abstract public void onRecv(SelectionKey from, HttpServerRequest hRequest);
     public void addWrite(SocketChannel to, SelectionKey from, HttpServerRequest hRequest) {
-        if (SocketChannelHelper.write(to, hRequest.bbData) >= 0) {
-            SendData ps = new SendData(to, from, hRequest);
-            if (ps.hRequest.bbData.remaining() > 0) {
-                registerWrite(ps.toSc, ps);
+        if (SocketChannelUtils.write(to, hRequest.bbData) >= 0) {
+            SendData sendData = new SendData(to, from, hRequest);
+            if (sendData.hRequest.bbData.remaining() > 0) {
+                registerWrite(sendData.toSc, sendData);
             } else {
-                registerRead(ps.toSc, ps);
+                registerRead(sendData.toSc, sendData);
             }
         }
     }
@@ -25,7 +24,6 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
         return false;
     }
 
-    private ConcurrentLinkedQueue<SendData> qAddRead = new ConcurrentLinkedQueue<SendData>();
     private class SendData {
         SocketChannel toSc;
         SelectionKey toFrom;
@@ -67,7 +65,7 @@ public abstract class HttpSendRecvNio extends NioRWAttach {
         if (objForClient != null) {
             HttpServerRequest hs = (HttpServerRequest) objForClient;
             SocketChannel sc = (SocketChannel) key.channel();
-            if (SocketChannelHelper.write(sc, hs.bbData) > 0) {
+            if (SocketChannelUtils.write(sc, hs.bbData) > 0) {
                 if (hs.bbData.remaining() == 0) {
                     hs.reset();
                     return NioSocketActionType.NSA_READ;

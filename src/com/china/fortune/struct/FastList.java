@@ -99,9 +99,9 @@ public class FastList<E> {
         }
     }
 
-    public boolean isEmpty() {
-        return iSize == 0;
-    }
+//    public boolean isEmpty() {
+//        return iSize == 0;
+//    }
 
     public int size() {
         return iSize;
@@ -165,15 +165,15 @@ public class FastList<E> {
         iSize = 0;
     }
 
-    public int countNull() {
-        int iNull = 0;
+    public boolean isEmpty() {
         for (int i = 0; i < iSize; i++) {
-            if (elementData[i] == null) {
-                iNull++;
+            if (elementData[i] != null) {
+                return false;
             }
         }
-        return iNull;
+        return true;
     }
+
     public FastList<E> clone() {
         FastList<E> v = new FastList<E>(elementData.length);
         System.arraycopy(elementData, 0, v.elementData, 0, iSize);

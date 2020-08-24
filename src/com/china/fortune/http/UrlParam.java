@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class UrlParam {
 	static public int calSigner(String sResource) {
@@ -14,7 +14,7 @@ public class UrlParam {
 			sTag = sResource.substring(0, index);
 		}
 		
-		int iSigner = StringAction.calSigner(sTag);
+		int iSigner = StringUtils.calSigner(sTag);
 		return iSigner;
 	}
 	
@@ -30,7 +30,7 @@ public class UrlParam {
 			int iEnd = sResource.indexOf('=', iStart);
 			if (iEnd > 0) {
 				if (sKey.length() == (iEnd - iStart)) {
-					if (StringAction.compareTo(sResource, iStart, sKey)) {
+					if (StringUtils.compareTo(sResource, iStart, sKey)) {
 						iEnd++;
 						int iAnd = sResource.indexOf('&', iEnd);
 						if (iAnd > 0) {
@@ -146,9 +146,9 @@ public class UrlParam {
 	
 //	static public String getResource(String sResource) {
 //		String sTag = sResource;
-//		int index = sResource.indexOf('?');
-//		if (index > 0) {
-//			sTag = sResource.substring(0, index);
+//		int iPort = sResource.indexOf('?');
+//		if (iPort > 0) {
+//			sTag = sResource.substring(0, iPort);
 //		}
 //		return sTag;
 //	}

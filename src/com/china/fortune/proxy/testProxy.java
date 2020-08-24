@@ -1,7 +1,7 @@
 package com.china.fortune.proxy;
 
 import com.china.fortune.global.Log;
-import com.china.fortune.http.HttpSendAndRecv;
+import com.china.fortune.http.HttpUtils;
 import com.china.fortune.http.client.HttpThreadAction;
 import com.china.fortune.thread.LoopThread;
 import com.china.fortune.thread.ThreadUtils;
@@ -15,7 +15,7 @@ public class testProxy {
         int iLoop = 1000;
         int iError = 0;
         for (int i = 0; i < iLoop; i++) {
-            if (HttpSendAndRecv.doGet(sUrl) == null) {
+            if (HttpUtils.get(sUrl) == null) {
                 iError++;
             }
         }
@@ -26,11 +26,11 @@ public class testProxy {
         HttpThreadAction hta = new HttpThreadAction() {
             @Override
             public boolean doHttpRequest(LoopThread t) {
-                String sRecv = HttpSendAndRecv.doGet(sUrl);
-                Log.logClass(sRecv);
+                String sRecv = HttpUtils.get(sUrl);
+//                Log.logClass(sRecv);
                 return sRecv != null && sRecv.length() > 50;
             }};
-        Log.log(sUrl);
+//        Log.log(sUrl);
         hta.start(20);
         for (int i = 0; i < 1000000; i++) {
             ThreadUtils.sleep(1000);
@@ -52,7 +52,7 @@ public class testProxy {
         sUrl = "http://20.21.1.133:30082/api/a/getBeforeVisitorPage?access_token=d303d009b92d473e9b2f0a62df56e899&deviceCode=RKDEV202004081056&pageNo=0&pageSize=1000";
         sUrl = "http://20.21.1.133:8989/proxy/echo";
         sUrl = "http://20.21.1.133:8989/showhttp";
-        String sRecv = HttpSendAndRecv.doGet(sUrl);
+//        String sRecv = HttpUtils.get(sUrl);
 //        sUrl = "http://www.baidu.com";
 //        testHttpThread(sUrl);
 //        sUrl = "http://121.40.112.2/account/checktoken?userId=1&token=111";

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import com.china.fortune.http.PairBuilder;
 import com.china.fortune.json.JSONObject;
 import com.china.fortune.reflex.ClassUtils;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class CheckKeys {
 	protected String[] lsKey = null;
@@ -29,6 +29,10 @@ public class CheckKeys {
 		}
 	}
 
+	public String[] getAll() {
+		return lsKey;
+	}
+
 	public String get(int i) {
 		if (lsKey != null && i >= 0 && i < lsKey.length) {
 			return lsKey[i];
@@ -45,13 +49,13 @@ public class CheckKeys {
 
 	public void append(String[] key1) {
 		if (key1 != null) {
-			lsKey = StringAction.appendStrings(lsKey, key1);
+			lsKey = StringUtils.appendStrings(lsKey, key1);
 		}
 	}
 
 	public void append(Class<?> o) {
 		ArrayList<String> lsKey = ClassUtils.getFieldName(o);
-		append(StringAction.arrayListToStrings(lsKey));
+		append(StringUtils.arrayListToStrings(lsKey));
 	}
 
 	public void append(Class<?> o, int count) {
@@ -59,7 +63,7 @@ public class CheckKeys {
 		while (alKey.size() > count) {
 			alKey.remove(alKey.size() - 1);
 		}
-		append(StringAction.arrayListToStrings(alKey));
+		append(StringUtils.arrayListToStrings(alKey));
 	}
 
 	public int size() {
@@ -108,7 +112,7 @@ public class CheckKeys {
 				if (o == null) {
 					return i;
 				} else if (o instanceof String) {
-					if (StringAction.length((String)(o)) == 0) {
+					if (StringUtils.length((String)(o)) == 0) {
 						return i;
 					}
 				}
@@ -120,7 +124,7 @@ public class CheckKeys {
 	public int checkNull(HashMap<String, String> map) {
 		if (lsKey != null && map != null) {
 			for (int i = 0; i < lsKey.length; i++) {
-				if (StringAction.length(map.get(lsKey[i])) == 0) {
+				if (StringUtils.length(map.get(lsKey[i])) == 0) {
 					return i;
 				}
 			}
@@ -131,7 +135,7 @@ public class CheckKeys {
 	public int checkNull(String[] lsValues) {
 		if (lsKey != null && lsValues != null) {
 			for (int i = 0; i < lsKey.length; i++) {
-				if (StringAction.length(lsValues[i]) == 0) {
+				if (StringUtils.length(lsValues[i]) == 0) {
 					return i;
 				}
 			}

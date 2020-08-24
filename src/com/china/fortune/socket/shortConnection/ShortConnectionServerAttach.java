@@ -8,7 +8,6 @@ import com.china.fortune.global.Log;
 import com.china.fortune.thread.AutoThreadPool;
 import com.china.fortune.thread.ThreadUtils;
 import com.china.fortune.struct.EnConcurrentLinkedQueue;
-import com.china.fortune.thread.AutoIncreaseThreadPool;
 
 // put the closing socket to selector to waiting close
 public abstract class ShortConnectionServerAttach {
@@ -42,6 +41,7 @@ public abstract class ShortConnectionServerAttach {
 		boolean rs = false;
 		try {
 			mServerSocket = new ServerSocket(iPort);
+			Log.logClass("iPort " + iPort);
 			rs = true;
 		} catch (Exception e) {
 			Log.logClass(e.getMessage());
@@ -51,7 +51,7 @@ public abstract class ShortConnectionServerAttach {
 
 	public void startAndBlock(int iPort) {
 		start(iPort);
-		waitUntilStop();
+		join();
 		closeSocket();
 		readThreaPool.waitToStop();
 	}
@@ -72,7 +72,7 @@ public abstract class ShortConnectionServerAttach {
 		readThreaPool.setAllStop();
 	}
 
-	public void waitUntilStop() {
+	public void join() {
 		if (tAcceptAndRead != null) {
 			try {
 				tAcceptAndRead.join();
@@ -104,7 +104,7 @@ public abstract class ShortConnectionServerAttach {
 	public void stop() {
 		bRunning = false;
 		closeSocket();
-		waitUntilStop();
+		join();
 		readThreaPool.waitToStop();
 	}
 

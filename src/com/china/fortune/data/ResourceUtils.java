@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.china.fortune.easy.String2Struct;
-import com.china.fortune.file.FileHelper;
+import com.china.fortune.file.FileUtils;
 import com.china.fortune.file.IniFileUtils;
 import com.china.fortune.global.Log;
 import com.china.fortune.os.file.PathUtils;
-import com.china.fortune.string.StringAction;
+import com.china.fortune.string.StringUtils;
 
 public class ResourceUtils {
 	static public String sRoot = PathUtils.getCurrentDataPath(true) + "res" + File.separator;
@@ -25,15 +25,15 @@ public class ResourceUtils {
 	}
 
 	static public String loadFile(String sFile) {
-		return FileHelper.readSmallFile(sRoot + sFile, "utf-8");
+		return FileUtils.readSmallFile(sRoot + sFile, "utf-8");
 	}
 
 	static public void saveFile(String sFile, String sJson) {
-		FileHelper.writeSmallFile(sRoot + sFile, sJson, "utf-8");
+		FileUtils.writeSmallFile(sRoot + sFile, sJson, "utf-8");
 	}
 
 	static public byte[] getBytes(String sFile) {
-		return FileHelper.readSmallFile(sRoot + sFile);
+		return FileUtils.readSmallFile(sRoot + sFile);
 	}
 
 	static public int loadFromIni(Class<?> cls) {
@@ -43,7 +43,7 @@ public class ResourceUtils {
 		int iCount = 0;
 		for (String2Struct s2s : lsData) {
 			Log.log(sClsName + ":" + s2s.s1 + " " + s2s.s2);
-			if (StringAction.length(s2s.s1) > 0) {
+			if (StringUtils.length(s2s.s1) > 0) {
 				try {
 					Field field = cls.getField(s2s.s1);
 					if (field != null && (field.getModifiers() & Modifier.STATIC) != 0) {
