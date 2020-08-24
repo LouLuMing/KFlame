@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project name="myFortune" start="ProxyTarget" basedir="." logtype="file">
+  <target name="ProxyTarget" class="com.china.fortune.proxy.ProxyServer">
+    <localport>8989</localport>
+    <resources>
+      <resource url="/index.html" cache="1" gzip="1">/mnt/sdb/work/jxzhly/web/dist</resource>
+      <resource url="/static">/mnt/sdb/work/jxzhly/web/dist</resource>
+      <resource url="/showhttp">http://20.21.1.170:8990</resource>
+    </resources>
+  </target>
+</project>
