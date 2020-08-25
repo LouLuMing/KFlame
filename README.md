@@ -1,4 +1,4 @@
-# GWeb
+# KFlame
 框架核心是基于Nio的网络框架和基于状态机的协议解析  
   基于Nio的框架的组件   
     Proxy反向代理，com.china.fortune.proxy  
